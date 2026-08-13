@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CellFront — Конструктор режимов (Sandbox)</title>
+<style>
+  :root {
+    --bg: #0b0f0c;
+    --bg-a: #1a2419;
+    --bg-b: #10160f;
+    --panel: #11160f;
+    --panel-2: #161d15;
+    --panel-3: #1d251c;
+    --line: #2c352c;
+    --line-soft: #222a22;
+    --gold: #c9a24b;
+    --gold-soft: #e8cf8e;
+    --gold-dim: #7d6633;
+    --text: #d3d9de;
+    --muted: #838d86;
+    --faint: #59625a;
+    --good: #66bb77;
+    --bad: #d05442;
+    --team-0: #6fa8d0;
+    --team-1: #cf6a4e;
+    --team-2: #79b56e;
+    --team-3: #d6bd62;
+    --cdark-1: #242d24;
+    --cdark-2: #1a211a;
+    --clight-1: #10150f;
+    --clight-2: #0d110c;
+    --btn-1: #222b22;
+    --btn-2: #151b15;
+    --btn-1h: #333f2f;
+    --btn-2h: #1d251c;
+    --btn-p1: #2e2a18;
+    --btn-p2: #191608;
+    --btn-p1h: #4a4224;
+    --btn-p2h: #241f0e;
+    --sel-bg: #11160f;
+    --ov-1: #171f17;
+    --ov-2: #0d120d;
+    --coin-off: #333b34;
+    --frame-c: #7d6633;
+    --u-shadow: rgba(0, 0, 0, .6);
+    --sel-glow: rgba(201, 162, 75, .6);
+    --mtn: #5c5344;
+    --mtn-hi: #6f6550;
+    --riv: #4a7d99;
+    --cov: #66764a;
+    --fog-bg: rgba(8, 12, 16, .82);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, var(--bg-a) 0%, transparent 60%),
+      radial-gradient(900px 500px at 50% 110%, var(--bg-b) 0%, transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  button { font-family: inherit; }
+  .hidden { display: none !important; }
+
+  #app { max-width: 1240px; margin: 0 auto; padding: 14px 16px 40px; }
+
+  .topbar {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel) 70%);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+    box-shadow: 0 6px 18px rgba(0,0,0,.45);
+    padding: 10px 16px;
+    margin-bottom: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .logo {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(201,162,75,.25);
+    line-height: 1;
+  }
+  .logo em { color: var(--gold); font-style: normal; }
+  .badge {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold-soft);
+    background: rgba(201,162,75,.08);
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .hud { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .turn-box {
+    min-width: 170px;
+    padding: 4px 10px;
+    border-left: 3px solid var(--gold);
+    background: var(--panel-3);
+  }
+  .turn-name { font-weight: 700; letter-spacing: 1px; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .turn-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex: none; }
+  .turn-dot.t0 { background: var(--team-0); box-shadow: 0 0 8px rgba(111,168,208,.7); }
+  .turn-dot.t1 { background: var(--team-1); box-shadow: 0 0 8px rgba(207,106,78,.7); }
+  .turn-dot.t2 { background: var(--team-2); box-shadow: 0 0 8px rgba(121,181,110,.7); }
+  .turn-dot.t3 { background: var(--team-3); box-shadow: 0 0 8px rgba(214,189,98,.7); }
+  .turn-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .turn-sub.think { color: var(--gold-soft); animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+
+  .coins-box { padding: 4px 10px; border: 1px solid var(--line-soft); background: var(--panel-3); }
+  .coins-label { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .coins-row { display: flex; gap: 4px; margin-top: 3px; align-items: center; }
+  .coin {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--coin-off);
+    border: 1px solid #000;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .coin.on {
+    background: radial-gradient(circle at 32% 28%, #f3d98a, var(--gold) 70%);
+    box-shadow: 0 0 6px rgba(201,162,75,.55);
+  }
+  .coins-text { font-size: 12px; margin-left: 6px; color: var(--gold-soft); font-weight: 700; }
+
+  .btn {
+    border: 1px solid var(--gold-dim);
+    background: linear-gradient(180deg, var(--btn-1), var(--btn-2));
+    color: var(--text);
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all .15s ease;
+  }
+  .btn:hover:not(:disabled) { background: linear-gradient(180deg, var(--btn-1h), var(--btn-2h)); border-color: var(--gold); color: var(--gold-soft); }
+  .btn.primary { border-color: var(--gold); background: linear-gradient(180deg, var(--btn-p1), var(--btn-p2)); color: var(--gold-soft); }
+  .btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, var(--btn-p1h), var(--btn-p2h)); box-shadow: 0 0 10px rgba(201,162,75,.35); }
+  .btn.active { border-color: var(--gold-soft); background: linear-gradient(180deg, var(--btn-p1h), var(--btn-p2h)); color: var(--gold-soft); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.mini { padding: 4px 8px; font-size: 10px; letter-spacing: 1px; }
+  .restore-btn { width: 100%; margin-top: 8px; font-weight: 700; }
+  .recruit-wrap { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .layout { display: flex; gap: 16px; align-items: flex-start; }
+  .board-zone { flex: 1 1 auto; min-width: 0; }
+
+  #board {
+    width: min(94vw, 660px);
+    margin: 0 auto;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    padding: 10px 10px 12px;
+  }
+  .frame-top { display: flex; margin-bottom: 4px; }
+  .frame-corner { width: 26px; flex: none; }
+  .frame-letters { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); }
+  .frame-letters span, .frame-numbers span {
+    color: var(--frame-c);
+    font-size: 11px;
+    letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none;
+  }
+  .frame-mid { display: flex; }
+  .frame-numbers { width: 26px; flex: none; display: flex; flex-direction: column; }
+  .frame-numbers span { flex: 1; }
+  .grid { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 0; }
+
+  .cell { position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+  .cell.dark {
+    background: linear-gradient(145deg, var(--cdark-1), var(--cdark-2));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
+  }
+  .cell.dark.zone-0 { background: linear-gradient(145deg, rgba(111,168,208,.12), rgba(111,168,208,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  .cell.dark.zone-1 { background: linear-gradient(145deg, rgba(207,106,78,.12), rgba(207,106,78,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  .cell.dark.zone-2 { background: linear-gradient(145deg, rgba(121,181,110,.12), rgba(121,181,110,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  .cell.dark.zone-3 { background: linear-gradient(145deg, rgba(214,189,98,.12), rgba(214,189,98,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  .cell.light {
+    background: repeating-linear-gradient(45deg, var(--clight-1) 0 6px, var(--clight-2) 6px 12px);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.5);
+  }
+  .cell.avail { cursor: pointer; }
+
+  .cell.terrain-1::before {
+    content: "";
+    position: absolute; z-index: 1; pointer-events: none;
+    width: 0; height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-bottom: 18px solid var(--mtn);
+    top: 18%; left: 50%;
+    transform: translateX(-50%);
+  }
+  .cell.terrain-1::after {
+    content: "";
+    position: absolute; z-index: 1; pointer-events: none;
+    width: 0; height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 11px solid var(--mtn-hi);
+    top: 36%; left: 28%;
+  }
+  .cell.terrain-2::before {
+    content: "";
+    position: absolute; z-index: 1; pointer-events: none;
+    left: 6%; right: 6%; top: 44%; height: 5px;
+    background: linear-gradient(90deg, transparent 0 10%, var(--riv) 10% 22%, transparent 22% 36%, var(--riv) 36% 48%, transparent 48% 60%, var(--riv) 60% 74%, transparent 74% 86%, var(--riv) 86% 100%);
+    border-radius: 2px;
+    opacity: .85;
+  }
+  .cell.terrain-3::before {
+    content: "";
+    position: absolute; z-index: 1; pointer-events: none;
+    left: 12%; right: 12%; bottom: 8%; height: 34%;
+    background: repeating-linear-gradient(45deg, var(--cov) 0 5px, transparent 5px 10px);
+    border: 1px solid var(--cov);
+    border-radius: 2px;
+    opacity: .8;
+  }
+  .cell.factory::before {
+    content: "";
+    position: absolute; z-index: 1; pointer-events: none;
+    inset: 9%;
+    border: 1px dashed color-mix(in srgb, var(--gold) 70%, transparent);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--gold) 0 10%, transparent 11%);
+    opacity: .5;
+  }
+  .cell.fog { cursor: default; }
+  .cell.fog::after {
+    content: "";
+    position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background: var(--fog-bg);
+  }
+
+  .unit {
+    width: 76%; height: 76%;
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    background: radial-gradient(circle at 32% 28%, var(--u-hi), var(--u-lo) 70%);
+    box-shadow: 0 3px 7px var(--u-shadow), inset 0 0 0 2px rgba(0,0,0,.35);
+    transition: transform .12s ease, box-shadow .12s ease;
+    z-index: 2;
+  }
+  .unit:hover { transform: scale(1.08); }
+  .unit.team-0 { --u-hi: color-mix(in srgb, var(--team-0) 78%, white); --u-lo: color-mix(in srgb, var(--team-0) 70%, black); }
+  .unit.team-1 { --u-hi: color-mix(in srgb, var(--team-1) 78%, white); --u-lo: color-mix(in srgb, var(--team-1) 70%, black); }
+  .unit.team-2 { --u-hi: color-mix(in srgb, var(--team-2) 78%, white); --u-lo: color-mix(in srgb, var(--team-2) 70%, black); }
+  .unit.team-3 { --u-hi: color-mix(in srgb, var(--team-3) 78%, white); --u-lo: color-mix(in srgb, var(--team-3) 70%, black); }
+  .unit.tank { border-radius: 24%; }
+  .unit.tank::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 24%;
+    background: linear-gradient(90deg, rgba(0,0,0,.0) 0 12%, rgba(0,0,0,.4) 18% 24%, rgba(0,0,0,0) 30% 70%, rgba(255,255,255,.22) 76% 82%, rgba(0,0,0,0) 88%),
+      linear-gradient(0deg, rgba(0,0,0,0) 0 15%, rgba(0,0,0,.4) 21% 27%, rgba(0,0,0,0) 33%);
+  }
+  .unit.artillery::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.14) 0 8%, rgba(0,0,0,0) 8%),
+      radial-gradient(circle, transparent 0 30%, rgba(0,0,0,.28) 31% 35%, transparent 36% 62%, rgba(255,255,255,.25) 63% 67%, transparent 68%);
+  }
+  .unit.broken { cursor: default; }
+  .unit.broken::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+      linear-gradient(24deg, rgba(8,11,14,0) 44.5%, rgba(8,11,14,.85) 46%, rgba(255,255,255,.35) 48%, rgba(8,11,14,0) 49.5%),
+      linear-gradient(79deg, rgba(8,11,14,0) 46.5%, rgba(8,11,14,.75) 48%, rgba(255,255,255,.3) 49.5%, rgba(8,11,14,0) 51%),
+      linear-gradient(134deg, rgba(8,11,14,0) 43.5%, rgba(8,11,14,.85) 45.3%, rgba(255,255,255,.38) 47%, rgba(8,11,14,0) 48.7%),
+      linear-gradient(201deg, rgba(8,11,14,0) 47%, rgba(8,11,14,.7) 48.6%, rgba(255,255,255,.28) 50%, rgba(8,11,14,0) 51.5%),
+      linear-gradient(307deg, rgba(8,11,14,0) 45.5%, rgba(8,11,14,.8) 47%, rgba(255,255,255,.32) 48.5%, rgba(8,11,14,0) 50%),
+      linear-gradient(352deg, rgba(8,11,14,0) 48.5%, rgba(8,11,14,.65) 50%, rgba(255,255,255,.24) 51.2%, rgba(8,11,14,0) 52.5%),
+      radial-gradient(circle at 54% 46%, rgba(255,255,255,.95) 0 2.8%, rgba(255,255,255,.45) 4% 6.5%, transparent 8.5%),
+      linear-gradient(140deg, rgba(255,255,255,.10) 0%, transparent 46%);
+    box-shadow: inset 0 0 5px rgba(0,0,0,.5), inset 0 0 2px rgba(255,255,255,.16);
+  }
+  .unit.artillery.broken::after { border-radius: 50%; }
+  .unit.sel {
+    box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--sel-glow);
+    transform: scale(1.05);
+  }
+
+  html[data-health="bar"] .unit::after {
+    content: "";
+    position: absolute;
+    left: 14%; right: 14%; bottom: 5%;
+    height: 16%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--good) 0 50%, rgba(255,255,255,.14) 50% 100%);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.5);
+  }
+  html[data-health="bar"] .unit.broken::after {
+    background: linear-gradient(90deg, var(--bad) 0 50%, rgba(255,255,255,.14) 50% 100%);
+    border-radius: 2px;
+  }
+  html[data-health="color"] .unit.broken {
+    filter: grayscale(.9) brightness(.6) contrast(.9);
+    box-shadow: 0 2px 5px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.5);
+  }
+  html[data-health="color"] .unit.broken::after { display: none; }
+
+  .marker {
+    position: absolute; inset: 3px;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .marker.move { border: 2px dashed rgba(102,187,119,.95); background: rgba(102,187,119,.12); }
+  .marker.move::after { content: ""; width: 32%; height: 32%; border-radius: 50%; background: rgba(102,187,119,.9); }
+  .marker.attack { background: rgba(208,84,66,.16); }
+  .marker.attack::after { content: "\00d7"; font-size: 1.5em; font-weight: 700; color: #e0533f; text-shadow: 0 0 4px rgba(224,83,63,.7); }
+  .marker.recruit { border: 2px dashed rgba(232,207,142,.95); background: rgba(201,162,75,.13); }
+  .marker.recruit::after { content: "+"; font-size: 1.8em; color: var(--gold-soft); text-shadow: 0 0 5px rgba(232,207,142,.6); }
+
+  .board-caption { text-align: center; margin-top: 8px; font-size: 11px; color: var(--faint); letter-spacing: 1px; }
+
+  .side { width: 360px; flex: none; display: flex; flex-direction: column; gap: 14px; }
+  .panel {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel) 70%);
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--gold);
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  }
+  .panel-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--gold-soft);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(255,255,255,.015);
+  }
+  .panel-body { padding: 10px 12px; }
+  .info-line { font-size: 12.5px; padding: 3px 0; color: var(--text); }
+  .info-line .k { color: var(--muted); }
+  .info-state { font-weight: 700; letter-spacing: 1px; }
+  .info-state.normal { color: var(--good); }
+  .info-state.broken { color: var(--bad); }
+  .info-tip { font-size: 12px; color: var(--muted); line-height: 1.5; padding: 3px 0; }
+  .info-tip b { color: var(--gold-soft); font-weight: 600; }
+
+  .log-panel { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 180px; }
+  #logBody { overflow-y: auto; max-height: 240px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+  .log-line {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--muted);
+    padding: 3px 8px;
+    border-left: 3px solid var(--line);
+    background: rgba(255,255,255,.015);
+  }
+  .log-line.own-0 { border-left-color: var(--team-0); color: #a9c6da; }
+  .log-line.own-1 { border-left-color: var(--team-1); color: #dcb0a2; }
+  .log-line.own-2 { border-left-color: var(--team-2); color: #b3d8ab; }
+  .log-line.own-3 { border-left-color: var(--team-3); color: #e4d9a9; }
+  .log-line.sys { border-left-color: var(--gold); color: var(--muted); }
+
+  .diplo-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 12px;
+  }
+  .diplo-row:last-child { border-bottom: none; }
+  .diplo-name { font-weight: 700; letter-spacing: 1px; flex: 1 1 auto; min-width: 90px; }
+  .diplo-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .tag.alliance { background: rgba(201,162,75,.18); border: 1px solid var(--gold-dim); color: var(--gold-soft); }
+  .tag.pact { background: rgba(130,140,149,.15); border: 1px solid #3a444e; color: #aab4bd; }
+  .tag.out { background: rgba(208,84,66,.12); border: 1px solid #5a2a22; color: #b96b5d; }
+  .tag.self { background: rgba(102,187,119,.12); border: 1px solid #2f5a3b; color: var(--good); }
+
+  .help-body { font-size: 12px; color: var(--muted); line-height: 1.55; padding: 10px 12px; }
+  .help-body li { margin: 3px 0 3px 16px; }
+  .help-body b { color: var(--text); }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(5,7,9,.8);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .overlay.hidden { display: none; }
+  .overlay-panel {
+    width: min(94vw, 720px);
+    max-height: 94vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, var(--ov-1), var(--ov-2) 70%);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    box-shadow: 0 18px 50px rgba(0,0,0,.7);
+    padding: 24px 28px 22px;
+    text-align: center;
+  }
+  .menu-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 8px;
+    color: var(--text);
+    text-shadow: 0 0 24px rgba(201,162,75,.3);
+  }
+  .menu-title em { color: var(--gold); font-style: normal; }
+  .menu-sub { font-size: 11px; letter-spacing: 4px; color: var(--muted); margin: 4px 0 14px; text-transform: uppercase; }
+  .menu-grid { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+  .menu-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .row-label { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .seg { display: flex; border: 1px solid var(--line); flex-wrap: wrap; }
+  .seg-btn {
+    background: linear-gradient(180deg, var(--btn-1), var(--btn-2));
+    border: none;
+    border-right: 1px solid var(--line);
+    color: var(--muted);
+    padding: 7px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .seg-btn:last-child { border-right: none; }
+  .seg-btn.active { background: linear-gradient(180deg, var(--btn-p1h), var(--btn-p2h)); color: var(--gold-soft); box-shadow: inset 0 0 0 1px var(--gold-dim); }
+  .sel {
+    background: var(--sel-bg);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 7px 10px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .slot-box { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .slot-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 10px;
+    border: 1px solid var(--line-soft);
+    background: rgba(255,255,255,.015);
+  }
+  .slot-name { font-size: 12px; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+  .menu-rules {
+    text-align: left;
+    margin-top: 18px;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .menu-rules li { margin: 3px 0 3px 16px; }
+  .menu-foot { margin-top: 16px; font-size: 10px; letter-spacing: 2px; color: var(--faint); }
+
+  .sandbox { margin-top: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.02); text-align: left; }
+  .sb-section { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); }
+  .sb-section:last-child { border-bottom: none; }
+  .sb-h { font-size: 10px; letter-spacing: 2px; color: var(--gold-soft); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }
+  .sb-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; font-size: 12.5px; }
+  .sb-row .lbl { color: var(--text); flex: 1; }
+  .sb-hint { font-size: 10.5px; color: var(--faint); line-height: 1.4; margin: 0 0 4px; }
+  .sb-val { color: var(--gold-soft); font-weight: 700; min-width: 52px; text-align: right; font-size: 12px; flex: none; }
+  .sb-row input[type="range"] { flex: 1; min-width: 60px; accent-color: var(--gold); height: 20px; cursor: pointer; }
+  .sb-row select.sel { min-width: 150px; flex: 1; max-width: 260px; }
+  .sb-row input[type="text"].sel { flex: 1; min-width: 100px; }
+  .sb-saved { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+  .sb-saved-item { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: rgba(255,255,255,.02); padding: 3px 8px; font-size: 11px; }
+  .sb-saved-item b { color: var(--gold-soft); font-weight: 600; }
+  .sb-saved-item .btn { padding: 2px 8px; font-size: 9px; }
+  .sb-empty { font-size: 11px; color: var(--faint); padding: 2px 0; }
+  .switch { position: relative; width: 38px; height: 20px; flex: none; display: inline-block; }
+  .switch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; z-index: 2; }
+  .switch .track { position: absolute; inset: 0; border-radius: 10px; background: var(--coin-off); border: 1px solid var(--line); transition: background .15s ease; }
+  .switch .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #97a196; transition: left .15s ease; }
+  .switch input:checked + .track { background: var(--gold-dim); }
+  .switch input:checked + .track::after { left: 20px; background: var(--gold-soft); }
+
+  .victory-title { font-family: Georgia, "Times New Roman", serif; font-size: 38px; letter-spacing: 6px; font-weight: 700; line-height: 1.15; }
+  .victory-title.t0 { color: var(--team-0); }
+  .victory-title.t1 { color: var(--team-1); }
+  .victory-title.t2 { color: var(--team-2); }
+  .victory-title.t3 { color: var(--team-3); }
+  .victory-title.gold { color: var(--gold-soft); }
+  .victory-sub { margin: 10px 0 22px; color: var(--muted); font-size: 13px; letter-spacing: 1px; }
+  .victory-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .toast {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 90;
+    background: var(--panel-3);
+    border: 1px solid var(--gold-dim);
+    border-left: 3px solid var(--bad);
+    color: var(--text);
+    padding: 10px 18px;
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+    white-space: nowrap;
+    max-width: 90vw;
+  }
+  .toast.show { opacity: 1; }
+  .toast.ok { border-left-color: var(--good); }
+
+  html[data-theme="cyber_tactical"] {
+    --bg: #05070e;
+    --bg-a: rgba(34,211,238,.09);
+    --bg-b: rgba(255,61,110,.07);
+    --panel: #0a0f1c;
+    --panel-2: #0e1526;
+    --panel-3: #131c31;
+    --line: #253049;
+    --line-soft: #1b2438;
+    --gold: #22d3ee;
+    --gold-soft: #8bf3ff;
+    --gold-dim: #0e7490;
+    --text: #d9e6f2;
+    --muted: #7d8ca6;
+    --faint: #55627a;
+    --good: #2bf5a3;
+    --bad: #ff3d6e;
+    --team-0: #2dd4ff;
+    --team-1: #ff5ca8;
+    --team-2: #3dffa2;
+    --team-3: #ffe45c;
+    --cdark-1: #0d1526;
+    --cdark-2: #0a101d;
+    --clight-1: #06090f;
+    --clight-2: #04070c;
+    --btn-1: #0e1730;
+    --btn-2: #0a1124;
+    --btn-1h: #143056;
+    --btn-2h: #0e1c38;
+    --btn-p1: #0a2430;
+    --btn-p2: #071720;
+    --btn-p1h: #0f3b4c;
+    --btn-p2h: #0a2430;
+    --sel-bg: #0a0f1c;
+    --ov-1: #0d1526;
+    --ov-2: #080d18;
+    --coin-off: #1c2740;
+    --frame-c: #0e7490;
+    --sel-glow: rgba(34,211,238,.6);
+    --mtn: #2f3d58;
+    --mtn-hi: #3d4e70;
+    --riv: #1e7fb0;
+    --cov: #2f8f6e;
+    --fog-bg: rgba(4,8,16,.84);
+  }
+  html[data-theme="cyber_tactical"] .frame-letters span,
+  html[data-theme="cyber_tactical"] .frame-numbers span,
+  html[data-theme="cyber_tactical"] .row-label,
+  html[data-theme="cyber_tactical"] .panel-title,
+  html[data-theme="cyber_tactical"] .badge,
+  html[data-theme="cyber_tactical"] .sb-h {
+    font-family: "Consolas", "Courier New", monospace;
+  }
+  html[data-theme="cyber_tactical"] .logo {
+    font-family: "Consolas", "Courier New", monospace;
+    text-shadow: 0 0 18px rgba(34,211,238,.45);
+  }
+  html[data-theme="cyber_tactical"] .cell.dark {
+    background: linear-gradient(145deg, var(--cdark-1), var(--cdark-2));
+    box-shadow: inset 0 0 0 1px rgba(34,211,238,.09);
+  }
+  html[data-theme="cyber_tactical"] .cell.dark.zone-0 { background: linear-gradient(145deg, rgba(45,212,255,.14), rgba(45,212,255,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  html[data-theme="cyber_tactical"] .cell.dark.zone-1 { background: linear-gradient(145deg, rgba(255,92,168,.14), rgba(255,92,168,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  html[data-theme="cyber_tactical"] .cell.dark.zone-2 { background: linear-gradient(145deg, rgba(61,255,162,.14), rgba(61,255,162,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  html[data-theme="cyber_tactical"] .cell.dark.zone-3 { background: linear-gradient(145deg, rgba(255,228,92,.14), rgba(255,228,92,.03)), linear-gradient(145deg, var(--cdark-1), var(--cdark-2)); }
+  html[data-theme="cyber_tactical"] .unit.sel { box-shadow: 0 0 0 3px var(--gold), 0 0 18px rgba(34,211,238,.65); }
+
+  html[data-theme="classic_paper"] {
+    --bg: #d9d0b8;
+    --bg-a: rgba(255,252,240,.5);
+    --bg-b: rgba(120,100,60,.06);
+    --panel: #e8e0ca;
+    --panel-2: #f1ebda;
+    --panel-3: #e1d8bf;
+    --line: #b3a684;
+    --line-soft: #c6b99a;
+    --gold: #8a6d2f;
+    --gold-soft: #a3843f;
+    --gold-dim: #8a6d2f;
+    --text: #3a3124;
+    --muted: #6d614c;
+    --faint: #8a7c62;
+    --good: #3e7d3f;
+    --bad: #9c3b28;
+    --team-0: #3f6fa5;
+    --team-1: #b0452f;
+    --team-2: #4c7d45;
+    --team-3: #a8892f;
+    --cdark-1: #cfc4a0;
+    --cdark-2: #c1b58e;
+    --clight-1: #e6dec9;
+    --clight-2: #ddd3ba;
+    --btn-1: #55644a;
+    --btn-2: #46543d;
+    --btn-1h: #6a7a5c;
+    --btn-2h: #52604a;
+    --btn-p1: #55644a;
+    --btn-p2: #46543d;
+    --btn-p1h: #6a7a5c;
+    --btn-p2h: #52604a;
+    --sel-bg: #f3eddc;
+    --ov-1: #f2ecdb;
+    --ov-2: #e0d7be;
+    --coin-off: #b3a684;
+    --frame-c: #8a6d2f;
+    --u-shadow: rgba(60,50,30,.45);
+    --sel-glow: rgba(138,109,47,.5);
+    --mtn: #6b5c3f;
+    --mtn-hi: #7d6d4c;
+    --riv: #4a7894;
+    --cov: #5f7040;
+    --fog-bg: rgba(28,24,15,.78);
+  }
+  html[data-theme="classic_paper"] body {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255,252,240,.55) 0%, transparent 60%),
+      repeating-linear-gradient(45deg, rgba(120,100,60,.035) 0 2px, transparent 2px 8px),
+      var(--bg);
+  }
+  html[data-theme="classic_paper"] .btn { color: #f2ecd9; }
+  html[data-theme="classic_paper"] .btn:hover:not(:disabled) { color: #fff8e8; }
+  html[data-theme="classic_paper"] .seg-btn { color: #6d614c; }
+  html[data-theme="classic_paper"] .seg-btn.active { color: #f2ecd9; }
+  html[data-theme="classic_paper"] .panel-title,
+  html[data-theme="classic_paper"] .logo,
+  html[data-theme="classic_paper"] .menu-title { font-family: Georgia, "Times New Roman", serif; }
+  html[data-theme="classic_paper"] .frame-letters span,
+  html[data-theme="classic_paper"] .frame-numbers span { font-style: italic; }
+  html[data-theme="classic_paper"] .log-line { background: rgba(120,100,60,.06); }
+  html[data-theme="classic_paper"] .toast { color: #3a3124; }
+  html[data-theme="classic_paper"] .cell.light { box-shadow: inset 0 0 0 1px rgba(90,75,40,.25); }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .side { width: 100%; }
+    #board { width: min(96vw, 600px); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">CELL<em>FRONT</em></div>
+      <div class="badge" id="modeBadge">Режим: Классика</div>
+    </div>
+    <div class="hud">
+      <div class="turn-box">
+        <div class="turn-name"><span class="turn-dot" id="turnDot"></span><span id="turnName">—</span><span class="tag alliance hidden" id="turnAlliance">СОЮЗ</span></div>
+        <div class="turn-sub" id="turnSub">Ожидание</div>
+      </div>
+      <div class="coins-box">
+        <div class="coins-label">Монеты</div>
+        <div class="coins-row" id="coinsRow"></div>
+        <div class="coins-text" id="coinsText">0 / 0</div>
+      </div>
+      <div class="recruit-wrap" id="recruitWrap"></div>
+      <button class="btn primary" id="btnEnd" disabled>Завершить ход</button>
+      <button class="btn" id="btnMenu">Меню</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="board-zone">
+      <div id="board"></div>
+      <div class="board-caption">Зелёные — движение · Красные — атака/огонь · Золотые — призыв. Только тёмные клетки.</div>
+    </section>
+    <aside class="side">
+      <div class="panel">
+        <div class="panel-title">ШТАБ-ДОКЛАД</div>
+        <div class="panel-body" id="infoBody"></div>
+      </div>
+      <div class="panel hidden" id="diploPanel">
+        <div class="panel-title">ФРОНТЫ · ДИПЛОМАТИЯ</div>
+        <div class="panel-body" id="diploBody"></div>
+      </div>
+      <div class="panel log-panel">
+        <div class="panel-title">БОЕВОЙ ЖУРНАЛ</div>
+        <div id="logBody"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">СВОДКА ПРАВИЛ</div>
+        <div class="help-body" id="helpBody"></div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div class="overlay" id="menuOv">
+  <div class="overlay-panel">
+    <div class="menu-title">CELL<em>FRONT</em></div>
+    <div class="menu-sub">Конструктор правил · Sandbox Edition</div>
+    <div class="menu-grid">
+      <div class="menu-row">
+        <span class="row-label">Готовые пресеты</span>
+        <div class="seg" id="segMode">
+          <button class="seg-btn active" data-mode="classic">🛡️ Классика</button>
+          <button class="seg-btn" data-mode="expanded">⚔️ Расширенный</button>
+          <button class="seg-btn" data-mode="custom">🛠️ Кастомный</button>
+        </div>
+      </div>
+      <div class="menu-row">
+        <span class="row-label">Игроков</span>
+        <div class="seg" id="segPlayers">
+          <button class="seg-btn active" data-players="2">2 игрока</button>
+          <button class="seg-btn" data-players="4">4 игрока</button>
+        </div>
+      </div>
+      <div class="menu-row">
+        <span class="row-label">Сложность ИИ</span>
+        <select class="sel" id="diffSel">
+          <option value="easy">Легко (ИИ −2 монеты/ход, без дипломатии)</option>
+          <option value="medium" selected>Средне (стандарт)</option>
+          <option value="hard">Сложно (ИИ +2 монеты/ход)</option>
+        </select>
+      </div>
+    </div>
+    <div class="slot-box" id="slotBox"></div>
+    <div id="sandboxBox" class="hidden"></div>
+    <button class="btn primary" id="btnStart" style="margin-top:14px; width:100%;">Начать битву</button>
+    <div class="menu-rules" id="menuRules"></div>
+    <div class="menu-foot">CELLFRONT v0.3 · КЛАССИКА + РАСШИРЕННЫЙ + SANDBOX EDITOR</div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="victoryOv">
+  <div class="overlay-panel">
+    <div class="victory-title gold" id="victoryTitle">ПОБЕДА</div>
+    <div class="victory-sub" id="victorySub">—</div>
+    <div class="victory-buttons">
+      <button class="btn primary" id="btnReplay">Новая битва</button>
+      <button class="btn" id="btnToMenu">В главное меню</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var CONFIG = Object.freeze({
+    SIZE: 8,
+    RESTORE_COST: 1,
+    PACT_COST: 2,
+    PACT_DURATION: 3,
+    ALLIANCE_COST: 4,
+    BETRAYAL_COST: 6,
+    LEND_AMOUNTS: Object.freeze([3, 5]),
+    DIFF_COINS: Object.freeze({ easy: -2, medium: 0, hard: 2 }),
+    AI_DELAY_MIN: 500,
+    AI_DELAY_MAX: 800,
+    AI_THINK_MS: 650,
+    LOG_LIMIT: 80,
+    AI_DIPLOMACY_PLAYERS: 3,
+    FACTORIES: Object.freeze([[2, 3], [3, 4], [4, 3], [5, 4]]),
+    FACTORY_BONUS: 1,
+    RIVER_EXTRA: 1,
+    VISION_RADIUS: 2,
+    STORAGE_KEY: "cellfront_custom_presets",
+    UI_KEY: "cellfront_last_ui"
+  });
+
+  var UnitState = Object.freeze({ NORMAL: "normal", BROKEN: "broken" });
+  var PlayerSide = Object.freeze({ HUMAN: "human", AI: "ai" });
+  var Phase = Object.freeze({ MENU: "menu", PLAYING: "playing", AI_TURN: "ai", OVER: "over" });
+  var Terrain = Object.freeze({ NONE: 0, MOUNTAIN: 1, RIVER: 2, COVER: 3 });
+
+  function sleep(ms) { return new Promise(function (res) { setTimeout(res, ms); }); }
+  function randInt(a, b) { return Math.floor(a + Math.random() * (b - a + 1)); }
+  function cheb(r1, c1, r2, c2) { return Math.max(Math.abs(r1 - r2), Math.abs(c1 - c2)); }
+  function coordName(r, c) { return String.fromCharCode(65 + c) + (CONFIG.SIZE - r); }
+  function cloneObj(o) { return JSON.parse(JSON.stringify(o)); }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = randInt(0, i);
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function UnitType(cfg) {
+    this.id = cfg.id;
+    this.title = cfg.title;
+    this.cost = cfg.cost;
+    this.moveCost = cfg.moveCost;
+    this.attackCost = cfg.attackCost;
+    this.moves = cfg.moves || 1;
+    this.attackMin = cfg.attackMin || 1;
+    this.attackMax = cfg.attackMax || 1;
+    this.destroysInfantry = !!cfg.destroysInfantry;
+    this.locksAfterMove = !!cfg.locksAfterMove;
+  }
+  UnitType.prototype.ranged = function () { return this.attackMin > 1; };
+
+  var UNIT_TYPES = Object.freeze({
+    infantry: new UnitType({ id: "infantry", title: "Пехота", cost: 6, moveCost: 1, attackCost: 1, moves: 1, attackMin: 1, attackMax: 1 }),
+    tank: new UnitType({ id: "tank", title: "Танк", cost: 10, moveCost: 1, attackCost: 2, moves: 2, attackMin: 1, attackMax: 1, destroysInfantry: true }),
+    artillery: new UnitType({ id: "artillery", title: "Артиллерия", cost: 8, moveCost: 1, attackCost: 2, moves: 1, attackMin: 2, attackMax: 3, locksAfterMove: true })
+  });
+
+  function unitCost(id, mult) {
+    return Math.max(1, Math.round(UNIT_TYPES[id].cost * (mult || 1)));
+  }
+
+  function presetConfig(presetId) {
+    var c = {
+      preset: presetId || "classic",
+      playerCount: 2,
+      incomePerTurn: 6,
+      factoriesEnabled: false,
+      carryOverCoins: false,
+      unitMoveLimit: "standard",
+      costMoveMult: 1,
+      costAttackMult: 1,
+      costRecruitMult: 1,
+      brokenState: true,
+      allowInfantry: true,
+      allowTanks: false,
+      allowArtillery: false,
+      allowDiplomacy: false,
+      uiTheme: "hoi4_military",
+      healthDisplay: "crack",
+      terrainEnabled: false,
+      terrainDensity: 0.2,
+      fogOfWar: false,
+      difficulty: "medium",
+      slots: ["human", "ai"]
+    };
+    if (presetId === "expanded") {
+      c.incomePerTurn = 8;
+      c.allowTanks = true;
+      c.allowArtillery = true;
+      c.allowDiplomacy = true;
+    }
+    return c;
+  }
+
+  var gameConfig = presetConfig("classic");
+  window.gameConfig = gameConfig;
+
+  var CORNERS = {
+    bottom: { r0: 6, r1: 7, c0: 0, c1: 7 },
+    top: { r0: 0, r1: 1, c0: 0, c1: 7 },
+    tl: { r0: 0, r1: 2, c0: 0, c1: 2 },
+    tr: { r0: 0, r1: 2, c0: 5, c1: 7 },
+    br: { r0: 5, r1: 7, c0: 5, c1: 7 },
+    bl: { r0: 5, r1: 7, c0: 0, c1: 2 }
+  };
+  var FACTION_NAMES = { "2": ["Синие", "Красные"], "4": ["Синие", "Красные", "Зелёные", "Жёлтые"] };
+  var CORNER_ORDER = { "2": ["bottom", "top"], "4": ["tl", "tr", "br", "bl"] };
+
+  var nextUnitId = 1;
+
+  function Unit(type, playerId, row, col) {
+    this.id = nextUnitId++;
+    this.type = type;
+    this.playerId = playerId;
+    this.row = row;
+    this.col = col;
+    this.state = UnitState.NORMAL;
+    this.actedMove = false;
+    this.actedAttack = false;
+  }
+  Unit.prototype.isBroken = function () { return this.state === UnitState.BROKEN; };
+  Unit.prototype.damage = function () { this.state = UnitState.BROKEN; };
+  Unit.prototype.heal = function () { this.state = UnitState.NORMAL; };
+
+  function Player(index, name, kind, corner) {
+    this.index = index;
+    this.name = name;
+    this.kind = kind;
+    this.corner = corner;
+    this.shortName = name.split(" ")[0];
+    this.units = [];
+    this.coins = 0;
+    this.alive = true;
+    this.allianceId = null;
+    this.betrayTarget = -1;
+    this.losses = 0;
+    this.kills = 0;
+  }
+  Player.prototype.isAI = function () { return this.kind === PlayerSide.AI; };
+  Player.prototype.rearStartRow = function () {
+    return (this.corner === "tl" || this.corner === "tr" || this.corner === "top") ? 0 : CONFIG.SIZE - 3;
+  };
+  Player.prototype.healZone = function () {
+    var s = CONFIG.SIZE - 1;
+    switch (this.corner) {
+      case "tl": return { r0: s - 2, r1: s, c0: s - 2, c1: s };
+      case "tr": return { r0: s - 2, r1: s, c0: 0, c1: 2 };
+      case "br": return { r0: 0, r1: 2, c0: 0, c1: 2 };
+      case "bl": return { r0: 0, r1: 2, c0: s - 2, c1: s };
+      case "top": return { r0: s, r1: s, c0: 0, c1: s };
+      default: return { r0: 0, r1: 0, c0: 0, c1: s };
+    }
+  };
+
+  function Board(size) {
+    this.size = size;
+    this.grid = [];
+    this.terrain = [];
+    for (var r = 0; r < size; r++) {
+      var row = [];
+      var tr = [];
+      for (var c = 0; c < size; c++) {
+        row.push({ row: r, col: c, unit: null });
+        tr.push(Terrain.NONE);
+      }
+      this.grid.push(row);
+      this.terrain.push(tr);
+    }
+  }
+  Board.prototype.isDark = function (r, c) { return (r + c) % 2 === 1; };
+  Board.prototype.inBounds = function (r, c) { return r >= 0 && r < this.size && c >= 0 && c < this.size; };
+  Board.prototype.unitAt = function (r, c) {
+    if (!this.inBounds(r, c)) return null;
+    return this.grid[r][c].unit;
+  };
+  Board.prototype.place = function (unit, r, c) { this.grid[r][c].unit = unit; };
+  Board.prototype.remove = function (r, c) { this.grid[r][c].unit = null; };
+  Board.prototype.terrainAt = function (r, c) { return this.terrain[r] ? this.terrain[r][c] : Terrain.NONE; };
+  Board.prototype.isPassable = function (r, c) { return this.terrainAt(r, c) !== Terrain.MOUNTAIN; };
+  Board.prototype.diagNeighbors = function (r, c) {
+    var out = [];
+    if (this.inBounds(r - 1, c - 1) && this.isDark(r - 1, c - 1)) out.push({ row: r - 1, col: c - 1 });
+    if (this.inBounds(r - 1, c + 1) && this.isDark(r - 1, c + 1)) out.push({ row: r - 1, col: c + 1 });
+    if (this.inBounds(r + 1, c - 1) && this.isDark(r + 1, c - 1)) out.push({ row: r + 1, col: c - 1 });
+    if (this.inBounds(r + 1, c + 1) && this.isDark(r + 1, c + 1)) out.push({ row: r + 1, col: c + 1 });
+    return out;
+  };
+  Board.prototype.freeDarkNeighbors = function (r, c) {
+    var out = [];
+    var n = this.diagNeighbors(r, c);
+    for (var i = 0; i < n.length; i++) {
+      if (this.isPassable(n[i].row, n[i].col) && !this.unitAt(n[i].row, n[i].col)) out.push(n[i]);
+    }
+    return out;
+  };
+
+  function Engine() {
+    this.cfg = presetConfig("classic");
+    this.difficulty = "medium";
+    this.board = new Board(CONFIG.SIZE);
+    this.players = [];
+    this.activeIdx = 0;
+    this.turnNumber = 0;
+    this.phase = Phase.MENU;
+    this.winner = null;
+    this.endReason = null;
+    this.pacts = [];
+    this.nextAllianceId = 1;
+    this.history = [];
+    this.hooks = [];
+  }
+  Engine.prototype.subscribe = function (fn) { this.hooks.push(fn); };
+  Engine.prototype.emit = function () {
+    for (var i = 0; i < this.hooks.length; i++) this.hooks[i]();
+  };
+  Engine.prototype.activePlayer = function () { return this.players[this.activeIdx]; };
+  Engine.prototype.log = function (text, owner) {
+    this.history.push({ text: text, owner: owner });
+    if (this.history.length > CONFIG.LOG_LIMIT) this.history.shift();
+  };
+  Engine.prototype.unitName = function (u) {
+    return u.type.title + " «" + this.players[u.playerId].shortName + "»";
+  };
+  Engine.prototype.livingPlayers = function () {
+    return this.players.filter(function (p) { return p.alive; });
+  };
+
+  Engine.prototype.factoriesControlled = function (playerId) {
+    var n = 0;
+    for (var i = 0; i < CONFIG.FACTORIES.length; i++) {
+      var f = CONFIG.FACTORIES[i];
+      var u = this.board.unitAt(f[0], f[1]);
+      if (u && u.playerId === playerId) n++;
+    }
+    return n;
+  };
+  Engine.prototype.incomeOf = function (p) {
+    var base = this.cfg.incomePerTurn;
+    if (p.isAI() && CONFIG.DIFF_COINS.hasOwnProperty(this.difficulty)) base += CONFIG.DIFF_COINS[this.difficulty];
+    if (this.cfg.factoriesEnabled) base += this.factoriesControlled(p.index) * CONFIG.FACTORY_BONUS;
+    return Math.max(1, base);
+  };
+  Engine.prototype.costMove = function (u, dist, rivers) {
+    return Math.max(1, Math.round(u.type.moveCost * this.cfg.costMoveMult * dist)) + (rivers || 0) * CONFIG.RIVER_EXTRA;
+  };
+  Engine.prototype.costAttack = function (u) {
+    return Math.max(1, Math.round(u.type.attackCost * this.cfg.costAttackMult));
+  };
+  Engine.prototype.costRecruit = function (type) {
+    return Math.max(1, Math.round(type.cost * this.cfg.costRecruitMult));
+  };
+  Engine.prototype.isUnitAllowed = function (typeId) {
+    if (typeId === "infantry") return this.cfg.allowInfantry;
+    if (typeId === "tank") return this.cfg.allowTanks;
+    if (typeId === "artillery") return this.cfg.allowArtillery;
+    return false;
+  };
+  Engine.prototype.cheapestRecruitCost = function () {
+    var best = Infinity;
+    var ids = ["infantry", "tank", "artillery"];
+    for (var i = 0; i < ids.length; i++) {
+      if (this.isUnitAllowed(ids[i])) best = Math.min(best, this.costRecruit(UNIT_TYPES[ids[i]]));
+    }
+    return best;
+  };
+
+  Engine.prototype.canMove = function (u) {
+    if (this.cfg.unitMoveLimit === "strict") return !(u.actedMove || u.actedAttack);
+    if (this.cfg.unitMoveLimit === "standard") return !u.actedMove && !u.actedAttack;
+    return true;
+  };
+  Engine.prototype.canAttack = function (u) {
+    if (this.cfg.unitMoveLimit === "strict") return !(u.actedMove || u.actedAttack);
+    if (this.cfg.unitMoveLimit === "standard") return !u.actedAttack;
+    return true;
+  };
+  Engine.prototype.lockAction = function (u, kind) {
+    if (this.cfg.unitMoveLimit === "strict") { u.actedMove = true; u.actedAttack = true; }
+    else if (this.cfg.unitMoveLimit === "standard" && kind === "move") u.actedMove = true;
+    else if (this.cfg.unitMoveLimit === "standard") u.actedAttack = true;
+  };
+
+  Engine.prototype.visibleSet = function (p) {
+    var set = {};
+    for (var i = 0; i < p.units.length; i++) {
+      var u = p.units[i];
+      for (var dr = -CONFIG.VISION_RADIUS; dr <= CONFIG.VISION_RADIUS; dr++) {
+        for (var dc = -CONFIG.VISION_RADIUS; dc <= CONFIG.VISION_RADIUS; dc++) {
+          var r = u.row + dr, c = u.col + dc;
+          if (this.board.inBounds(r, c)) set[r + ":" + c] = true;
+        }
+      }
+    }
+    return set;
+  };
+
+  Engine.prototype.newGame = function (opts) {
+    this.cfg = opts.cfg || presetConfig("classic");
+    this.difficulty = opts.difficulty || "medium";
+    this.board = new Board(CONFIG.SIZE);
+    this.players = [];
+    this.pacts = [];
+    this.nextAllianceId = 1;
+    this.history = [];
+    this.activeIdx = 0;
+    this.turnNumber = 0;
+    this.winner = null;
+    this.endReason = null;
+    var names = opts.players.length === 2 ? ["Синие", "Красные"] : ["Синие", "Красные", "Зелёные", "Жёлтые"];
+    for (var i = 0; i < opts.players.length; i++) {
+      var o = opts.players[i];
+      var nm = names[i] + (o.kind === PlayerSide.AI ? " (ИИ)" : "");
+      var player = new Player(i, nm, o.kind, o.corner || (i === 0 ? "bottom" : "top"));
+      this.players.push(player);
+      this.placeStartUnits(player);
+    }
+    if (this.cfg.terrainEnabled) this.genTerrain();
+    this.phase = Phase.PLAYING;
+    this.beginTurn();
+    this.emit();
+    if (this.phase === Phase.PLAYING && this.activePlayer().isAI()) this.runAITurn();
+  };
+
+  Engine.prototype.genTerrain = function () {
+    var banned = {};
+    var order = CORNER_ORDER[String(this.cfg.playerCount)];
+    for (var i = 0; i < order.length; i++) {
+      var rect = CORNERS[order[i]];
+      for (var r = rect.r0; r <= rect.r1; r++) {
+        for (var c = rect.c0; c <= rect.c1; c++) banned[r + ":" + c] = true;
+      }
+    }
+    for (var k = 0; k < CONFIG.FACTORIES.length; k++) banned[CONFIG.FACTORIES[k][0] + ":" + CONFIG.FACTORIES[k][1]] = true;
+    var cand = [];
+    for (var r = 0; r < this.board.size; r++) {
+      for (var c = 0; c < this.board.size; c++) {
+        if (this.board.isDark(r, c) && !banned[r + ":" + c]) cand.push([r, c]);
+      }
+    }
+    var count = Math.min(cand.length, Math.round(cand.length * this.cfg.terrainDensity));
+    shuffle(cand);
+    for (var i = 0; i < count; i++) {
+      var roll = Math.random();
+      var t = roll < 0.4 ? Terrain.MOUNTAIN : (roll < 0.7 ? Terrain.RIVER : Terrain.COVER);
+      this.board.terrain[cand[i][0]][cand[i][1]] = t;
+    }
+    if (count > 0) this.log("Сгенерирован рельеф: " + count + " препятствий (горы/реки/укрытия)", -1);
+  };
+
+  Engine.prototype.placeStartUnits = function (player) {
+    var rect = CORNERS[player.corner] || CORNERS.bottom;
+    for (var r = rect.r0; r <= rect.r1; r++) {
+      for (var c = rect.c0; c <= rect.c1; c++) {
+        if (this.board.isDark(r, c)) {
+          var u = new Unit(UNIT_TYPES.infantry, player.index, r, c);
+          player.units.push(u);
+          this.board.place(u, r, c);
+        }
+      }
+    }
+  };
+
+  Engine.prototype.nextAliveAfter = function (idx) {
+    for (var k = 1; k <= this.players.length; k++) {
+      var j = (idx + k) % this.players.length;
+      if (this.players[j].alive) return j;
+    }
+    return -1;
+  };
+
+  Engine.prototype.resetTurnFor = function (p) {
+    this.turnNumber++;
+    for (var i = 0; i < p.units.length; i++) {
+      p.units[i].actedMove = false;
+      p.units[i].actedAttack = false;
+    }
+    var facs = this.cfg.factoriesEnabled ? this.factoriesControlled(p.index) : 0;
+    var income = this.incomeOf(p);
+    p.coins = this.cfg.carryOverCoins ? p.coins + income : income;
+    if (facs > 0) this.log("Заводы под контролем приносят +" + facs + " к доходу", p.index);
+    p.betrayTarget = -1;
+    for (var j = this.pacts.length - 1; j >= 0; j--) {
+      var pact = this.pacts[j];
+      if (pact.owner === p.index) {
+        pact.turns--;
+        if (pact.turns <= 0) {
+          this.pacts.splice(j, 1);
+          this.log("Пакт «" + this.players[pact.a].shortName + " — " + this.players[pact.b].shortName + "» истёк", -1);
+        }
+      }
+    }
+  };
+
+  Engine.prototype.beginTurn = function () {
+    var safety = this.players.length * 2 + 4;
+    while (safety-- > 0) {
+      var p = this.activePlayer();
+      if (!p || !p.alive) {
+        var nx = this.nextAliveAfter(this.activeIdx);
+        if (nx < 0) { this.phase = Phase.OVER; this.emit(); return; }
+        this.activeIdx = nx;
+        continue;
+      }
+      this.resetTurnFor(p);
+      this.log("— Ход " + this.turnNumber + " · " + p.name + " —", -1);
+      if (!this.canParticipate(p)) {
+        this.defeatPlayer(p);
+        if (this.phase === Phase.OVER) return;
+        continue;
+      }
+      return;
+    }
+    this.phase = Phase.OVER;
+  };
+
+  Engine.prototype.endTurn = function () {
+    if (this.phase === Phase.OVER || this.phase === Phase.MENU) return;
+    this.activeIdx = this.nextAliveAfter(this.activeIdx);
+    if (this.activeIdx < 0) {
+      this.finish(null, "Все стороны выбыли");
+      return;
+    }
+    this.phase = Phase.PLAYING;
+    this.beginTurn();
+    this.emit();
+    if (this.phase === Phase.PLAYING && this.activePlayer().isAI()) this.runAITurn();
+  };
+
+  Engine.prototype.runAITurn = function () {
+    var self = this;
+    if (this.phase !== Phase.PLAYING || !this.activePlayer().isAI()) return Promise.resolve();
+    this.phase = Phase.AI_TURN;
+    this.log(this.activePlayer().name + " разрабатывает план…", this.activePlayer().index);
+    this.emit();
+    return new AI(this).playTurn().then(function () { self.emit(); });
+  };
+
+  Engine.prototype.movesOf = function (unit) {
+    var p = this.activePlayer();
+    if (this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) return [];
+    if (p.index !== unit.playerId || !this.canMove(unit)) return [];
+    var out = [];
+    var dirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+    for (var i = 0; i < dirs.length; i++) {
+      var n1r = unit.row + dirs[i][0], n1c = unit.col + dirs[i][1];
+      if (this.board.inBounds(n1r, n1c) && this.board.isPassable(n1r, n1c) && !this.board.unitAt(n1r, n1c)) {
+        var rv1 = this.board.terrainAt(n1r, n1c) === Terrain.RIVER ? 1 : 0;
+        var c1 = this.costMove(unit, 1, rv1);
+        if (p.coins >= c1) out.push({ row: n1r, col: n1c });
+        if (unit.type.moves >= 2) {
+          var n2r = unit.row + dirs[i][0] * 2, n2c = unit.col + dirs[i][1] * 2;
+          if (this.board.inBounds(n2r, n2c) && this.board.isPassable(n2r, n2c) && !this.board.unitAt(n2r, n2c)) {
+            var rv2 = (this.board.terrainAt(n1r, n1c) === Terrain.RIVER ? 1 : 0) + (this.board.terrainAt(n2r, n2c) === Terrain.RIVER ? 1 : 0);
+            var c2 = this.costMove(unit, 2, rv2);
+            if (p.coins >= c2) out.push({ row: n2r, col: n2c });
+          }
+        }
+      }
+    }
+    return out;
+  };
+
+  Engine.prototype.attacksOf = function (unit) {
+    var p = this.activePlayer();
+    if (this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) return [];
+    if (p.index !== unit.playerId || !this.canAttack(unit)) return [];
+    if (p.coins < this.costAttack(unit)) return [];
+    var out = [];
+    var self = this;
+    var isFoe = function (r, c) {
+      var t = self.board.unitAt(r, c);
+      if (!t || t.playerId === unit.playerId) return false;
+      if (self.isFriendly(unit.playerId, t.playerId)) return false;
+      if (unit.type.ranged() && self.board.terrainAt(r, c) === Terrain.COVER) return false;
+      return true;
+    };
+    if (unit.type.ranged()) {
+      for (var d = unit.type.attackMin; d <= unit.type.attackMax; d++) {
+        for (var dr = -1; dr <= 1; dr += 2) {
+          for (var dc = -1; dc <= 1; dc += 2) {
+            var rr = unit.row + dr * d, cc = unit.col + dc * d;
+            if (this.board.inBounds(rr, cc) && isFoe(rr, cc)) out.push({ row: rr, col: cc });
+          }
+        }
+      }
+    } else {
+      var n = this.board.diagNeighbors(unit.row, unit.col);
+      for (var i = 0; i < n.length; i++) {
+        if (isFoe(n[i].row, n[i].col)) out.push(n[i]);
+      }
+    }
+    return out;
+  };
+
+  Engine.prototype.canRestore = function (unit) {
+    var p = this.activePlayer();
+    if (this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) return false;
+    if (!this.cfg.brokenState) return false;
+    if (p.index !== unit.playerId || !unit.isBroken() || !this.canAttack(unit)) return false;
+    if (p.coins < CONFIG.RESTORE_COST) return false;
+    var start = this.players[unit.playerId].rearStartRow();
+    return unit.row >= start && unit.row < start + 3;
+  };
+
+  Engine.prototype.recruitCells = function (player) {
+    if (player.coins < this.cheapestRecruitCost()) return [];
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < player.units.length; i++) {
+      var n = this.board.freeDarkNeighbors(player.units[i].row, player.units[i].col);
+      for (var j = 0; j < n.length; j++) {
+        var k = n[j].row + ":" + n[j].col;
+        if (!seen[k]) { seen[k] = true; out.push(n[j]); }
+      }
+    }
+    return out;
+  };
+
+  Engine.prototype.canRecruitAny = function (p) {
+    return p.coins >= this.cheapestRecruitCost() && this.recruitCells(p).length > 0;
+  };
+
+  Engine.prototype.canMoveOrAttack = function (u) {
+    return this.movesOf(u).length > 0 || this.attacksOf(u).length > 0;
+  };
+
+  Engine.prototype.canParticipate = function (p) {
+    if (this.canRecruitAny(p)) return true;
+    for (var i = 0; i < p.units.length; i++) {
+      var u = p.units[i];
+      if (this.canMoveOrAttack(u) || this.canRestore(u)) return true;
+    }
+    return false;
+  };
+
+  Engine.prototype.settle = function (unit) {
+    if (!this.cfg.brokenState) return;
+    var own = this.players[unit.playerId];
+    var z = own.healZone();
+    if (unit.isBroken() && unit.row >= z.r0 && unit.row <= z.r1 && unit.col >= z.c0 && unit.col <= z.c1) {
+      unit.heal();
+      this.log(this.unitName(unit) + " восстанавливается на противоположном крае", unit.playerId);
+    }
+  };
+
+  Engine.prototype.destroyUnit = function (u) {
+    var p = this.players[u.playerId];
+    p.units = p.units.filter(function (x) { return x.id !== u.id; });
+    p.losses++;
+    if (this.board.unitAt(u.row, u.col) === u) this.board.remove(u.row, u.col);
+  };
+
+  Engine.prototype.defeatPlayer = function (p) {
+    if (!p.alive) return;
+    p.alive = false;
+    var units = p.units.slice();
+    for (var i = 0; i < units.length; i++) this.destroyUnit(units[i]);
+    this.log("«" + p.name + "» выбывает из кампании", p.index);
+    this.emit();
+    this.checkVictory();
+  };
+
+  Engine.prototype.finish = function (winner, reason) {
+    if (this.phase === Phase.OVER) return;
+    this.winner = winner;
+    this.endReason = reason;
+    this.phase = Phase.OVER;
+    if (winner && winner.kind === "alliance") {
+      var names = [];
+      for (var i = 0; i < winner.members.length; i++) names.push(winner.members[i].name);
+      this.log("СОВМЕСТНАЯ ПОБЕДА АЛЬЯНСА: " + names.join(", ") + ". " + reason, winner.members[0].index);
+    } else if (winner && winner.kind === "player") {
+      this.log("ПОБЕДА: " + winner.player.name + ". " + reason, winner.player.index);
+    } else {
+      this.log("НИЧЬЯ. " + reason, -1);
+    }
+  };
+
+  Engine.prototype.checkVictory = function () {
+    if (this.phase === Phase.OVER) return;
+    var changed = true;
+    while (changed && this.phase !== Phase.OVER) {
+      changed = false;
+      for (var i = 0; i < this.players.length; i++) {
+        var p = this.players[i];
+        if (p.alive && p.units.length === 0) { this.defeatPlayer(p); changed = true; }
+      }
+    }
+    if (this.phase === Phase.OVER) return;
+    var living = this.livingPlayers();
+    if (living.length <= 1) {
+      if (living.length === 1) this.finish({ kind: "player", player: living[0] }, "последняя оставшаяся сторона");
+      else this.finish(null, "все стороны выбыли");
+      return;
+    }
+    if (this.cfg.allowDiplomacy) {
+      var first = living[0];
+      if (first.allianceId !== null) {
+        var same = true;
+        for (var i = 1; i < living.length; i++) {
+          if (living[i].allianceId !== first.allianceId) { same = false; break; }
+        }
+        if (same) {
+          this.finish({ kind: "alliance", id: first.allianceId, members: living.slice() }, "на доске остались только члены одного союза");
+          return;
+        }
+      }
+    }
+  };
+
+  Engine.prototype.areAllied = function (aIdx, bIdx) {
+    var a = this.players[aIdx], b = this.players[bIdx];
+    return a.alive && b.alive && a.allianceId !== null && a.allianceId === b.allianceId;
+  };
+
+  Engine.prototype.pactTurns = function (aIdx, bIdx) {
+    for (var i = 0; i < this.pacts.length; i++) {
+      var pc = this.pacts[i];
+      if ((pc.a === aIdx && pc.b === bIdx) || (pc.a === bIdx && pc.b === aIdx)) return pc.turns;
+    }
+    return 0;
+  };
+
+  Engine.prototype.isFriendly = function (aIdx, bIdx) {
+    if (this.areAllied(aIdx, bIdx)) return true;
+    if (this.pactTurns(aIdx, bIdx) > 0) return true;
+    if (this.players[aIdx].betrayTarget === bIdx) return true;
+    return false;
+  };
+
+  Engine.prototype.aiAcceptsAlliance = function (target, proposer) {
+    if (target.units.length <= proposer.units.length) return true;
+    var enemies = 0;
+    for (var i = 0; i < this.players.length; i++) {
+      var x = this.players[i];
+      if (!x.alive || x.index === target.index) continue;
+      if (this.areAllied(target.index, x.index) || this.pactTurns(target.index, x.index) > 0) continue;
+      enemies++;
+    }
+    return enemies >= 2;
+  };
+
+  Engine.prototype.requestPact = function (p, target) {
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || this.activePlayer().index !== p.index) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.cfg.allowDiplomacy) return { ok: false, msg: "Дипломатия отключена в настройках режима" };
+    if (!target || !target.alive || target.index === p.index) return { ok: false, msg: "Цель недоступна" };
+    if (this.areAllied(p.index, target.index)) return { ok: false, msg: "Вы уже в союзе" };
+    if (this.pactTurns(p.index, target.index) > 0) return { ok: false, msg: "Пакт уже действует" };
+    if (p.coins < CONFIG.PACT_COST) return { ok: false, msg: "Недостаточно монет" };
+    p.coins -= CONFIG.PACT_COST;
+    this.pacts.push({ a: p.index, b: target.index, owner: p.index, turns: CONFIG.PACT_DURATION });
+    this.log("Пакт о ненападении: " + p.shortName + " — " + target.shortName + " (" + CONFIG.PACT_DURATION + " хода)", p.index);
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.requestAlliance = function (p, target) {
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || this.activePlayer().index !== p.index) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.cfg.allowDiplomacy) return { ok: false, msg: "Дипломатия отключена в настройках режима" };
+    if (!target || !target.alive || target.index === p.index) return { ok: false, msg: "Цель недоступна" };
+    if (this.areAllied(p.index, target.index)) return { ok: false, msg: "Вы уже в союзе" };
+    if (p.coins < CONFIG.ALLIANCE_COST) return { ok: false, msg: "Недостаточно монет" };
+    if (target.isAI() && !this.aiAcceptsAlliance(target, p)) {
+      this.log(target.shortName + " отклоняет предложение союза от " + p.shortName, target.index);
+      this.emit();
+      return { ok: false, msg: "ИИ отклонил предложение союза" };
+    }
+    p.coins -= CONFIG.ALLIANCE_COST;
+    if (target.allianceId !== null) p.allianceId = target.allianceId;
+    else if (p.allianceId !== null) target.allianceId = p.allianceId;
+    else { var aid = this.nextAllianceId++; p.allianceId = aid; target.allianceId = aid; }
+    for (var i = this.pacts.length - 1; i >= 0; i--) {
+      var pc = this.pacts[i];
+      if ((pc.a === p.index && pc.b === target.index) || (pc.a === target.index && pc.b === p.index)) this.pacts.splice(i, 1);
+    }
+    this.log("ВОЕННЫЙ СОЮЗ: " + p.shortName + " и " + target.shortName + " (союз №" + p.allianceId + ")", p.index);
+    this.checkVictory();
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.breakAlliance = function (p) {
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || this.activePlayer().index !== p.index) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.cfg.allowDiplomacy) return { ok: false, msg: "Дипломатия отключена в настройках режима" };
+    if (p.allianceId === null) return { ok: false, msg: "Вы не состоите в союзе" };
+    if (p.coins < CONFIG.BETRAYAL_COST) return { ok: false, msg: "Для разрыва союза нужно " + CONFIG.BETRAYAL_COST + " монет" };
+    p.coins -= CONFIG.BETRAYAL_COST;
+    var strongest = null;
+    for (var i = 0; i < this.players.length; i++) {
+      var x = this.players[i];
+      if (x.alive && x.index !== p.index && x.allianceId === p.allianceId) {
+        if (!strongest || x.units.length > strongest.units.length) strongest = x;
+      }
+    }
+    p.allianceId = null;
+    p.betrayTarget = strongest ? strongest.index : -1;
+    this.log("ПРЕДАТЕЛЬСТВО: " + p.shortName + " разрывает союз" + (strongest ? " с «" + strongest.shortName + "»" : "") + " и платит штраф " + CONFIG.BETRAYAL_COST, p.index);
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.lendLease = function (p, target, amount) {
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || this.activePlayer().index !== p.index) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.cfg.allowDiplomacy) return { ok: false, msg: "Дипломатия отключена в настройках режима" };
+    if (!target || !target.alive || target.index === p.index) return { ok: false, msg: "Цель недоступна" };
+    if (CONFIG.LEND_AMOUNTS.indexOf(amount) < 0) return { ok: false, msg: "Ленд-лиз: 3 или 5 монет" };
+    if (p.coins < amount) return { ok: false, msg: "Недостаточно монет" };
+    p.coins -= amount;
+    target.coins += amount;
+    this.log("Ленд-лиз: " + p.shortName + " передаёт " + amount + " монет «" + target.shortName + "»", p.index);
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.tryMove = function (unit, to) {
+    var p = this.activePlayer();
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || p.index !== unit.playerId) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.canMove(unit)) return { ok: false, msg: "Юнит уже потратил действие в этом ходу" };
+    var dist = Math.max(Math.abs(to.row - unit.row), Math.abs(to.col - unit.col));
+    if (Math.abs(to.row - unit.row) !== Math.abs(to.col - unit.col) || dist < 1 || dist > unit.type.moves) return { ok: false, msg: "Недопустимая траектория" };
+    if (!this.board.inBounds(to.row, to.col) || !this.board.isDark(to.row, to.col)) return { ok: false, msg: "Движение только по тёмным клеткам" };
+    if (!this.board.isPassable(to.row, to.col)) return { ok: false, msg: "Путь преграждает горный массив" };
+    var rivers = 0;
+    if (dist === 2) {
+      var mr = unit.row + (to.row - unit.row) / 2, mc = unit.col + (to.col - unit.col) / 2;
+      if (!this.board.isPassable(mr, mc)) return { ok: false, msg: "Путь преграждает горный массив" };
+      if (this.board.unitAt(mr, mc)) return { ok: false, msg: "Путь перекрыт" };
+      rivers += this.board.terrainAt(mr, mc) === Terrain.RIVER ? 1 : 0;
+    }
+    rivers += this.board.terrainAt(to.row, to.col) === Terrain.RIVER ? 1 : 0;
+    var cost = this.costMove(unit, dist, rivers);
+    if (p.coins < cost) return { ok: false, msg: "Недостаточно монет" };
+    if (this.board.unitAt(to.row, to.col)) return { ok: false, msg: "Клетка занята" };
+    p.coins -= cost;
+    this.board.remove(unit.row, unit.col);
+    unit.row = to.row;
+    unit.col = to.col;
+    this.lockAction(unit, "move");
+    if (unit.type.locksAfterMove) unit.actedAttack = true;
+    this.board.place(unit, unit.row, unit.col);
+    this.settle(unit);
+    this.log(this.unitName(unit) + " перемещается на " + coordName(unit.row, unit.col) + (dist === 2 ? " (быстрый манёвр)" : "") + (rivers > 0 ? " · форсирование реки +" + rivers : ""), unit.playerId);
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.tryAttack = function (attacker, cell) {
+    var p = this.activePlayer();
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || p.index !== attacker.playerId) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.canAttack(attacker)) return { ok: false, msg: "Юнит уже потратил действие в этом ходу" };
+    if (p.coins < this.costAttack(attacker)) return { ok: false, msg: "Недостаточно монет" };
+    var foe = this.board.unitAt(cell.row, cell.col);
+    if (!foe) return { ok: false, msg: "Клетка пуста — цели нет" };
+    if (foe.playerId === attacker.playerId) return { ok: false, msg: "Нельзя атаковать союзника" };
+    if (this.isFriendly(attacker.playerId, foe.playerId)) {
+      if (this.areAllied(attacker.playerId, foe.playerId)) return { ok: false, msg: "Союзники не могут атаковать друг друга" };
+      if (this.players[attacker.playerId].betrayTarget === foe.playerId) return { ok: false, msg: "Предательство: атаки по экс-союзнику запрещены в этом ходу" };
+      return { ok: false, msg: "Пакт о ненападении действует" };
+    }
+    var dr = cell.row - attacker.row, dc = cell.col - attacker.col;
+    if (Math.abs(dr) !== Math.abs(dc)) return { ok: false, msg: "Только по диагонали" };
+    var dist = Math.abs(dr);
+    if (attacker.type.ranged()) {
+      if (dist < attacker.type.attackMin || dist > attacker.type.attackMax) return { ok: false, msg: "Цель вне дальности" };
+      if (this.board.terrainAt(cell.row, cell.col) === Terrain.COVER) return { ok: false, msg: "Укрытие блокирует навесной огонь" };
+    } else if (dist !== 1) {
+      return { ok: false, msg: "Атака на соседнюю клетку" };
+    }
+    p.coins -= this.costAttack(attacker);
+    if (attacker.type.ranged()) {
+      this.lockAction(attacker, "attack");
+      attacker.actedMove = true;
+      if (foe.isBroken() || !this.cfg.brokenState) {
+        this.destroyUnit(foe);
+        this.log(this.unitName(attacker) + " накрывает и уничтожает " + this.unitName(foe), attacker.playerId);
+      } else {
+        foe.damage();
+        this.log(this.unitName(attacker) + " обстреливает " + this.unitName(foe) + " — сломлена без отхода", attacker.playerId);
+      }
+    } else {
+      this.lockAction(attacker, "attack");
+      var destroys = (foe.isBroken() || !this.cfg.brokenState) || (attacker.type.destroysInfantry && foe.type.id === "infantry");
+      if (destroys) {
+        this.destroyUnit(foe);
+        if (this.cfg.unitMoveLimit !== "tactical") attacker.actedMove = true;
+        this.board.remove(attacker.row, attacker.col);
+        attacker.row = cell.row;
+        attacker.col = cell.col;
+        this.board.place(attacker, cell.row, cell.col);
+        this.log(this.unitName(attacker) + (foe.isBroken() ? " добивает сломанную " + this.unitName(foe) : " прорывает фронт: " + this.unitName(foe) + " уничтожена"), attacker.playerId);
+        this.settle(attacker);
+      } else {
+        foe.damage();
+        this.log(this.unitName(attacker) + " бьёт " + this.unitName(foe) + " — жертва сломлена и держит позицию", attacker.playerId);
+      }
+    }
+    this.checkVictory();
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.tryRestore = function (unit) {
+    var p = this.activePlayer();
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || p.index !== unit.playerId) return { ok: false, msg: "Сейчас не ваш ход" };
+    if (!this.cfg.brokenState) return { ok: false, msg: "Механика «сломанного состояния» отключена в этом режиме" };
+    if (!unit.isBroken()) return { ok: false, msg: "Юнит не нуждается в ремонте" };
+    if (!this.canAttack(unit)) return { ok: false, msg: "Юнит уже потратил действие в этом ходу" };
+    if (p.coins < CONFIG.RESTORE_COST) return { ok: false, msg: "Недостаточно монет" };
+    var owner = this.players[unit.playerId];
+    if (unit.row < owner.rearStartRow() || unit.row >= owner.rearStartRow() + 3) return { ok: false, msg: "Ремонт доступен только в 3 нижних рядах" };
+    p.coins -= CONFIG.RESTORE_COST;
+    unit.heal();
+    if (this.cfg.unitMoveLimit === "strict") this.lockAction(unit, "attack");
+    this.log(this.unitName(unit) + " отремонтирована в тылу за " + CONFIG.RESTORE_COST + " монету", unit.playerId);
+    this.emit();
+    return { ok: true };
+  };
+
+  Engine.prototype.tryRecruit = function (player, typeId, cell) {
+    if ((this.phase !== Phase.PLAYING && this.phase !== Phase.AI_TURN) || this.activePlayer().index !== player.index) return { ok: false, msg: "Сейчас не ваш ход" };
+    var type = UNIT_TYPES[typeId];
+    if (!type) return { ok: false, msg: "Неизвестный тип юнита" };
+    if (!this.isUnitAllowed(typeId)) return { ok: false, msg: "Этот юнит отключён в настройках режима" };
+    var cost = this.costRecruit(type);
+    if (player.coins < cost) return { ok: false, msg: "Для призыва нужно " + cost + " монет" };
+    if (!this.board.inBounds(cell.row, cell.col) || !this.board.isDark(cell.row, cell.col)) return { ok: false, msg: "Призыв только на тёмные клетки" };
+    if (this.board.unitAt(cell.row, cell.col)) return { ok: false, msg: "Клетка занята" };
+    if (!this.board.isPassable(cell.row, cell.col)) return { ok: false, msg: "Клетка занята рельефом" };
+    var valid = false;
+    for (var i = 0; i < player.units.length; i++) {
+      var n = this.board.diagNeighbors(player.units[i].row, player.units[i].col);
+      for (var j = 0; j < n.length; j++) {
+        if (n[j].row === cell.row && n[j].col === cell.col) valid = true;
+      }
+    }
+    if (!valid) return { ok: false, msg: "Новая часть должна стоять рядом с союзником" };
+    player.coins -= cost;
+    var u = new Unit(type, player.index, cell.row, cell.col);
+    player.units.push(u);
+    this.board.place(u, cell.row, cell.col);
+    this.log(player.shortName + " призывает " + type.title.toLowerCase() + " на " + coordName(cell.row, cell.col) + " (" + cost + " монет)", player.index);
+    this.emit();
+    return { ok: true };
+  };
+
+  function AI(engine) {
+    this.e = engine;
+  }
+
+  AI.prototype.playTurn = function () {
+    var e = this.e;
+    var self = this;
+    return sleep(CONFIG.AI_THINK_MS).then(function () {
+      self.maybeDiplomacy();
+      return step();
+    });
+    function step() {
+      if (e.phase !== Phase.AI_TURN) return Promise.resolve();
+      var act = self.choose();
+      if (!act) return sleep(randInt(CONFIG.AI_DELAY_MIN, CONFIG.AI_DELAY_MAX)).then(function () { e.endTurn(); });
+      return sleep(randInt(CONFIG.AI_DELAY_MIN, CONFIG.AI_DELAY_MAX)).then(function () {
+        if (act.kind === "attack") e.tryAttack(act.unit, act.cell);
+        else if (act.kind === "restore") e.tryRestore(act.unit);
+        else if (act.kind === "move") e.tryMove(act.unit, act.cell);
+        else if (act.kind === "recruit") e.tryRecruit(e.activePlayer(), act.type, act.cell);
+        if (e.phase === Phase.OVER) return Promise.resolve();
+        return step();
+      });
+    }
+  };
+
+  AI.prototype.maybeDiplomacy = function () {
+    var e = this.e;
+    var me = e.activePlayer();
+    if (!e.cfg.allowDiplomacy || !me.isAI() || e.difficulty === "easy") return;
+    if (e.players.length < CONFIG.AI_DIPLOMACY_PLAYERS) return;
+    if (me.coins < CONFIG.PACT_COST) return;
+    var leader = null;
+    var living = e.livingPlayers();
+    for (var i = 0; i < living.length; i++) {
+      var x = living[i];
+      if (x.index === me.index || e.areAllied(me.index, x.index)) continue;
+      if (!leader || x.units.length > leader.units.length) leader = x;
+    }
+    if (!leader || leader.units.length <= me.units.length + 1) return;
+    var target = null;
+    for (var i = 0; i < living.length; i++) {
+      var x = living[i];
+      if (x.index === me.index || x.index === leader.index || e.areAllied(me.index, x.index)) continue;
+      if (!target || x.units.length < target.units.length) target = x;
+    }
+    if (!target) return;
+    if (me.coins >= CONFIG.ALLIANCE_COST) e.requestAlliance(me, target);
+    else e.requestPact(me, target);
+  };
+
+  AI.prototype.choose = function () {
+    var broken = this.pickAttack(true);
+    if (broken) return broken;
+    var normal = this.pickAttack(false);
+    if (normal) return normal;
+    var restore = this.pickRestore();
+    if (restore) return restore;
+    var advance = this.pickBrokenAdvance();
+    if (advance) return advance;
+    var recruit = this.pickRecruit();
+    if (recruit) return recruit;
+    return this.pickPressMove();
+  };
+
+  AI.prototype.pickAttack = function (brokenOnly) {
+    var e = this.e;
+    var me = e.activePlayer();
+    var best = null, bestScore = -Infinity;
+    for (var i = 0; i < me.units.length; i++) {
+      var u = me.units[i];
+      var targets = e.attacksOf(u);
+      for (var j = 0; j < targets.length; j++) {
+        var foe = e.board.unitAt(targets[j].row, targets[j].col);
+        if (!foe || foe.isBroken() !== brokenOnly) continue;
+        var score;
+        if (foe.isBroken()) score = 100;
+        else if (u.type.destroysInfantry && foe.type.id === "infantry") score = 95;
+        else if (u.type.id === "tank" && foe.type.id === "tank") score = 70;
+        else if (foe.type.id === "infantry" || foe.type.id === "artillery") score = 65;
+        else score = 55;
+        if (score > bestScore) { bestScore = score; best = { kind: "attack", unit: u, cell: targets[j] }; }
+      }
+    }
+    return best;
+  };
+
+  AI.prototype.pickRestore = function () {
+    var e = this.e;
+    var me = e.activePlayer();
+    for (var i = 0; i < me.units.length; i++) {
+      if (e.canRestore(me.units[i])) return { kind: "restore", unit: me.units[i] };
+    }
+    return null;
+  };
+
+  AI.prototype.pickBrokenAdvance = function () {
+    var e = this.e;
+    var me = e.activePlayer();
+    var z = me.healZone();
+    var cr = (z.r0 + z.r1) / 2, cc = (z.c0 + z.c1) / 2;
+    var best = null, bestScore = -Infinity;
+    for (var i = 0; i < me.units.length; i++) {
+      var u = me.units[i];
+      if (!u.isBroken()) continue;
+      var moves = e.movesOf(u);
+      for (var j = 0; j < moves.length; j++) {
+        var score = -cheb(moves[j].row, moves[j].col, cr, cc);
+        if (score > bestScore) { bestScore = score; best = { kind: "move", unit: u, cell: moves[j] }; }
+      }
+    }
+    return best;
+  };
+
+  AI.prototype.pickRecruit = function () {
+    var e = this.e;
+    var me = e.activePlayer();
+    var minCost = e.cheapestRecruitCost();
+    if (me.coins < minCost) return null;
+    var cells = e.recruitCells(me);
+    if (!cells.length) return null;
+    var counts = {};
+    for (var i = 0; i < me.units.length; i++) counts[me.units[i].type.id] = true;
+    var order = [];
+    if (e.cfg.allowTanks) order.push("tank");
+    if (e.cfg.allowArtillery) order.push("artillery");
+    if (e.cfg.allowInfantry) order.push("infantry");
+    var want = null;
+    for (var i = 0; i < order.length; i++) {
+      var t = UNIT_TYPES[order[i]];
+      if (me.coins >= e.costRecruit(t)) {
+        if (!counts[t.id]) { want = t.id; break; }
+        if (!want) want = t.id;
+      }
+    }
+    if (!want) return null;
+    var best = null, bestScore = Infinity;
+    var mid = (CONFIG.SIZE - 1) / 2;
+    for (var i = 0; i < cells.length; i++) {
+      var sc = cheb(cells[i].row, cells[i].col, mid, mid);
+      if (sc < bestScore) { bestScore = sc; best = cells[i]; }
+    }
+    return { kind: "recruit", type: want, cell: best };
+  };
+
+  AI.prototype.pickPressMove = function () {
+    var e = this.e;
+    var me = e.activePlayer();
+    var foeList = [];
+    for (var i = 0; i < e.players.length; i++) {
+      var x = e.players[i];
+      if (x.alive && x.index !== me.index && !e.areAllied(me.index, x.index)) foeList.push(x);
+    }
+    if (!foeList.length) return null;
+    var list = [];
+    for (var i = 0; i < foeList.length; i++) {
+      for (var j = 0; j < foeList[i].units.length; j++) list.push(foeList[i].units[j]);
+    }
+    if (!list.length) return null;
+    var best = null, bestScore = -Infinity;
+    var mid = (CONFIG.SIZE - 1) / 2;
+    for (var i = 0; i < me.units.length; i++) {
+      var u = me.units[i];
+      var moves = e.movesOf(u);
+      for (var j = 0; j < moves.length; j++) {
+        var m = moves[j];
+        var d1 = 99, d0 = 99;
+        for (var k = 0; k < list.length; k++) {
+          var da = cheb(m.row, m.col, list[k].row, list[k].col);
+          var db = cheb(u.row, u.col, list[k].row, list[k].col);
+          if (da < d1) d1 = da;
+          if (db < d0) d0 = db;
+        }
+        var gain = d0 - d1;
+        var rowSign = (mid - u.row) > 0 ? 1 : -1;
+        var colSign = (mid - u.col) > 0 ? 1 : -1;
+        var fwd = ((m.row - u.row) * rowSign) * 0.5 + ((m.col - u.col) * colSign) * 0.3;
+        var score = gain * 10 + fwd;
+        if (score > bestScore) { bestScore = score; best = { kind: "move", unit: u, cell: m }; }
+      }
+    }
+    if (best && bestScore > 0.4) return best;
+    return null;
+  };
+
+  var SANDBOX_HTML =
+    '<div class="sandbox">' +
+    '<div class="sb-section">' +
+    '<div class="sb-h">A · Экономика и развитие</div>' +
+    '<div class="sb-row"><span class="lbl">Прирост монет в ход</span>' +
+    '<input type="range" data-sb="incomePerTurn" min="2" max="20" step="1"><span class="sb-val" data-val="incomePerTurn">6</span></div>' +
+    '<div class="sb-row"><span class="lbl">Накопительные заводы (пассивный доход)</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="factoriesEnabled"><span class="track"></span></label></div>' +
+    '<div class="sb-hint">Контролируемые заводские точки в центре доски дают +1 к доходу за каждую — развитие экономики в стиле HOI4.</div>' +
+    '<div class="sb-row"><span class="lbl">Перенос монет на следующий ход</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="carryOverCoins"><span class="track"></span></label></div>' +
+    '</div>' +
+    '<div class="sb-section">' +
+    '<div class="sb-h">B · Лимиты и ограничения юнитов</div>' +
+    '<div class="sb-row"><span class="lbl">Лимит действий юнита за ход</span>' +
+    '<select class="sel" data-sb="unitMoveLimit">' +
+    '<option value="strict">Строгий — 1 действие</option>' +
+    '<option value="standard">Стандартный — ход + атака</option>' +
+    '<option value="tactical">Тактический — без лимита</option>' +
+    '</select></div>' +
+    '<div class="sb-row"><span class="lbl">Стоимость движения (множитель)</span>' +
+    '<input type="range" data-sb="costMoveMult" min="0.5" max="2" step="0.25"><span class="sb-val" data-val="costMoveMult">×1</span></div>' +
+    '<div class="sb-row"><span class="lbl">Стоимость атаки (множитель)</span>' +
+    '<input type="range" data-sb="costAttackMult" min="0.5" max="2" step="0.25"><span class="sb-val" data-val="costAttackMult">×1</span></div>' +
+    '<div class="sb-row"><span class="lbl">Стоимость призыва (множитель)</span>' +
+    '<input type="range" data-sb="costRecruitMult" min="0.5" max="2" step="0.25"><span class="sb-val" data-val="costRecruitMult">×1</span></div>' +
+    '<div class="sb-row"><span class="lbl">Сломанное состояние (двухэтапное уничтожение)</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="brokenState"><span class="track"></span></label></div>' +
+    '</div>' +
+    '<div class="sb-section">' +
+    '<div class="sb-h">C · Войска и механики</div>' +
+    '<div class="sb-row"><span class="lbl">Пехота</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="allowInfantry"><span class="track"></span></label></div>' +
+    '<div class="sb-row"><span class="lbl">Танки</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="allowTanks"><span class="track"></span></label></div>' +
+    '<div class="sb-row"><span class="lbl">Артиллерия</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="allowArtillery"><span class="track"></span></label></div>' +
+    '<div class="sb-row"><span class="lbl">Дипломатия (пакты, союзы, ленд-лиз)</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="allowDiplomacy"><span class="track"></span></label></div>' +
+    '<div class="sb-row"><span class="lbl">Генерация рельефа (горы, реки, укрытия)</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="terrainEnabled"><span class="track"></span></label></div>' +
+    '<div class="sb-row" id="sbDensityRow"><span class="lbl">Плотность рельефа</span>' +
+    '<input type="range" data-sb="terrainDensity" min="0.05" max="0.5" step="0.05"><span class="sb-val" data-val="terrainDensity">20%</span></div>' +
+    '<div class="sb-row"><span class="lbl">Туман войны (видимость вокруг юнитов)</span>' +
+    '<label class="switch"><input type="checkbox" data-sb="fogOfWar"><span class="track"></span></label></div>' +
+    '</div>' +
+    '<div class="sb-section">' +
+    '<div class="sb-h">D · Тема и интерфейс</div>' +
+    '<div class="sb-row"><span class="lbl">Тема оформления</span>' +
+    '<select class="sel" data-sb="uiTheme">' +
+    '<option value="hoi4_military">HOI4 Dark Military</option>' +
+    '<option value="cyber_tactical">Cyber Tactical</option>' +
+    '<option value="classic_paper">Classic Paper</option>' +
+    '</select></div>' +
+    '<div class="sb-row"><span class="lbl">Отображение здоровья</span>' +
+    '<select class="sel" data-sb="healthDisplay">' +
+    '<option value="crack">Иконка трещины</option>' +
+    '<option value="bar">Полоса HP</option>' +
+    '<option value="color">Изменение цвета</option>' +
+    '</select></div>' +
+    '<div class="sb-row"><span class="lbl">Сохранить пресет</span>' +
+    '<input class="sel" type="text" id="sbPresetName" placeholder="Название режима"><button class="btn mini" id="sbSaveBtn">Сохранить</button></div>' +
+    '<div class="sb-saved" id="sbSaved"></div>' +
+    '<div class="sb-row"><span class="lbl">Сбросить к значениям по умолчанию</span>' +
+    '<button class="btn mini" id="sbResetBtn">Сброс</button></div>' +
+    '</div>' +
+    '</div>';
+
+  function UI(engine, dom) {
+    this.e = engine;
+    this.dom = dom;
+    this.selectedUnit = null;
+    this.recruitType = null;
+    this.lastSig = "";
+    this.toastTimer = null;
+    this.cellEls = [];
+    this.menuMode = "classic";
+    this.menuPlayers = 2;
+    this.menuSlots = ["human", "ai"];
+    this.draft = presetConfig("custom");
+    this.savedPresets = [];
+    this.builtMenu = false;
+    this.builtSandbox = false;
+    this.lastGame = { mode: "classic", players: 2, slots: ["human", "ai"], difficulty: "medium" };
+    var self = this;
+    this.loadSavedPresets();
+    var stored = null;
+    try { stored = JSON.parse(localStorage.getItem(CONFIG.UI_KEY) || "null"); } catch (err) {}
+    if (stored && stored.t) {
+      this.draft.uiTheme = stored.t;
+      this.draft.healthDisplay = stored.h || "crack";
+      this.applyTheme(stored.t);
+      this.applyHealth(stored.h || "crack");
+    } else {
+      this.applyTheme("hoi4_military");
+      this.applyHealth("crack");
+    }
+    engine.subscribe(function () { self.render(); });
+    this.buildBoard();
+    this.bindButtons();
+  }
+
+  UI.prototype.applyTheme = function (theme) {
+    document.documentElement.setAttribute("data-theme", theme || "hoi4_military");
+    this.persistUI();
+  };
+  UI.prototype.applyHealth = function (mode) {
+    document.documentElement.setAttribute("data-health", mode || "crack");
+    this.persistUI();
+  };
+  UI.prototype.persistUI = function () {
+    try {
+      localStorage.setItem(CONFIG.UI_KEY, JSON.stringify({
+        t: document.documentElement.getAttribute("data-theme") || "hoi4_military",
+        h: document.documentElement.getAttribute("data-health") || "crack"
+      }));
+    } catch (err) {}
+  };
+
+  UI.prototype.loadSavedPresets = function () {
+    try { this.savedPresets = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY) || "[]") || []; }
+    catch (err) { this.savedPresets = []; }
+    if (!Array.isArray(this.savedPresets)) this.savedPresets = [];
+  };
+  UI.prototype.persistPresets = function () {
+    try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(this.savedPresets)); } catch (err) {}
+  };
+
+  UI.prototype.buildBoard = function () {
+    var frame = this.dom.board;
+    frame.innerHTML = "";
+    var top = document.createElement("div");
+    top.className = "frame-top";
+    var corner = document.createElement("div");
+    corner.className = "frame-corner";
+    top.appendChild(corner);
+    var letters = document.createElement("div");
+    letters.className = "frame-letters";
+    for (var c = 0; c < CONFIG.SIZE; c++) {
+      var s = document.createElement("span");
+      s.textContent = String.fromCharCode(65 + c);
+      letters.appendChild(s);
+    }
+    top.appendChild(letters);
+    frame.appendChild(top);
+    var mid = document.createElement("div");
+    mid.className = "frame-mid";
+    var nums = document.createElement("div");
+    nums.className = "frame-numbers";
+    for (var r = 0; r < CONFIG.SIZE; r++) {
+      var n = document.createElement("span");
+      n.textContent = CONFIG.SIZE - r;
+      nums.appendChild(n);
+    }
+    mid.appendChild(nums);
+    var grid = document.createElement("div");
+    grid.className = "grid";
+    var self = this;
+    this.cellEls = [];
+    for (var r = 0; r < CONFIG.SIZE; r++) {
+      var row = [];
+      for (var c = 0; c < CONFIG.SIZE; c++) {
+        (function (rr, cc) {
+          var d = document.createElement("div");
+          d.className = "cell";
+          d.addEventListener("click", function () { self.onCell(rr, cc); });
+          row.push(d);
+          grid.appendChild(d);
+        })(r, c);
+      }
+      this.cellEls.push(row);
+    }
+    mid.appendChild(grid);
+    frame.appendChild(mid);
+  };
+
+  UI.prototype.bindButtons = function () {
+    var self = this;
+    this.dom.btnEnd.addEventListener("click", function () { self.onEndTurn(); });
+    this.dom.btnMenu.addEventListener("click", function () { self.onMenu(); });
+    this.dom.btnStart.addEventListener("click", function () { self.onStart(); });
+    this.dom.btnReplay.addEventListener("click", function () {
+      var g = self.lastGame;
+      self.startGame(g.mode, g.players, g.slots, g.difficulty);
+    });
+    this.dom.btnToMenu.addEventListener("click", function () { self.onMenu(); });
+    this.dom.infoBody.addEventListener("click", function (ev) {
+      var t = ev.target;
+      while (t && t !== self.dom.infoBody) {
+        if (t.getAttribute && t.getAttribute("data-action") === "restore") { self.onRestore(); return; }
+        t = t.parentNode;
+      }
+    });
+    this.dom.recruitWrap.addEventListener("click", function (ev) {
+      var t = ev.target;
+      while (t && t !== self.dom.recruitWrap) {
+        if (t.getAttribute && t.getAttribute("data-recruit")) {
+          self.onRecruitClick(t.getAttribute("data-recruit"));
+          return;
+        }
+        t = t.parentNode;
+      }
+    });
+    this.dom.diploBody.addEventListener("click", function (ev) { self.onDiploClick(ev); });
+    this.dom.menuOv.addEventListener("click", function (ev) {
+      var t = ev.target;
+      while (t && t !== self.dom.menuOv) {
+        if (t.getAttribute && t.getAttribute("data-mode")) { self.setMenuMode(t.getAttribute("data-mode")); return; }
+        if (t.getAttribute && t.getAttribute("data-players")) { self.setMenuPlayers(parseInt(t.getAttribute("data-players"), 10)); return; }
+        t = t.parentNode;
+      }
+    });
+    for (var i = 0; i < 10; i++) {
+      var coin = document.createElement("span");
+      coin.className = "coin";
+      this.dom.coinsRow.appendChild(coin);
+    }
+  };
+
+  UI.prototype.buildSandbox = function () {
+    if (this.builtSandbox) return;
+    this.builtSandbox = true;
+    var box = this.dom.sandboxBox;
+    box.innerHTML = SANDBOX_HTML;
+    var self = this;
+    box.addEventListener("input", function (ev) {
+      var el = ev.target;
+      var f = el.getAttribute && el.getAttribute("data-sb");
+      if (!f) return;
+      var v;
+      if (el.type === "checkbox") v = el.checked;
+      else if (el.type === "select-one") v = el.value;
+      else v = parseFloat(el.value);
+      self.draft[f] = v;
+      self.syncSandboxVal(f);
+      if (f === "uiTheme") self.applyTheme(v);
+      if (f === "healthDisplay") self.applyHealth(v);
+      if (f === "terrainEnabled") {
+        var dr = box.querySelector("#sbDensityRow");
+        if (dr) dr.style.display = v ? "" : "none";
+      }
+    });
+    box.addEventListener("click", function (ev) {
+      var t = ev.target;
+      while (t && t !== box) {
+        var act = t.getAttribute && t.getAttribute("data-sb-action");
+        if (act === "load") { self.onLoadPreset(parseInt(t.getAttribute("data-idx"), 10)); return; }
+        if (act === "del") { self.onDeletePreset(parseInt(t.getAttribute("data-idx"), 10)); return; }
+        if (t.id === "sbSaveBtn") { self.onSavePreset(); return; }
+        if (t.id === "sbResetBtn") {
+          self.draft = presetConfig("custom");
+          self.syncSandbox();
+          self.renderMenu();
+          self.render();
+          return;
+        }
+        t = t.parentNode;
+      }
+    });
+    this.renderSavedPresets();
+  };
+
+  UI.prototype.syncSandbox = function () {
+    var box = this.dom.sandboxBox;
+    if (!box) return;
+    var els = box.querySelectorAll("[data-sb]");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var f = el.getAttribute("data-sb");
+      if (el.type === "checkbox") el.checked = !!this.draft[f];
+      else el.value = this.draft[f];
+      this.syncSandboxVal(f);
+    }
+    var dr = box.querySelector("#sbDensityRow");
+    if (dr) dr.style.display = this.draft.terrainEnabled ? "" : "none";
+  };
+
+  UI.prototype.syncSandboxVal = function (f) {
+    var box = this.dom.sandboxBox;
+    if (!box) return;
+    var lab = box.querySelector('[data-val="' + f + '"]');
+    if (!lab) return;
+    var v = this.draft[f];
+    if (f === "terrainDensity") lab.textContent = Math.round(v * 100) + "%";
+    else if (f === "costMoveMult" || f === "costAttackMult" || f === "costRecruitMult") {
+      lab.textContent = "×" + v.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    } else lab.textContent = v;
+  };
+
+  UI.prototype.renderSavedPresets = function () {
+    var box = this.dom.sandboxBox ? this.dom.sandboxBox.querySelector("#sbSaved") : null;
+    if (!box) return;
+    if (!this.savedPresets.length) {
+      box.innerHTML = '<div class="sb-empty">Сохранённых пресетов нет — настройте режим и нажмите «Сохранить».</div>';
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < this.savedPresets.length; i++) {
+      html += '<div class="sb-saved-item"><b>' + esc(this.savedPresets[i].name) + "</b>" +
+        '<button class="btn mini" data-sb-action="load" data-idx="' + i + '">Загрузить</button>' +
+        '<button class="btn mini" data-sb-action="del" data-idx="' + i + '">Удалить</button></div>';
+    }
+    box.innerHTML = html;
+  };
+
+  UI.prototype.onSavePreset = function () {
+    var box = this.dom.sandboxBox;
+    var input = box.querySelector("#sbPresetName");
+    var name = (input.value || "").trim();
+    if (!name) { this.toast("Введите название пресета"); return; }
+    this.savedPresets.push({ name: name, config: cloneObj(this.draft) });
+    this.persistPresets();
+    input.value = "";
+    this.renderSavedPresets();
+    this.toast("Пресет «" + name + "» сохранён в память браузера");
+  };
+
+  UI.prototype.onLoadPreset = function (idx) {
+    if (!this.savedPresets[idx]) return;
+    this.draft = cloneObj(this.savedPresets[idx].config);
+    this.menuMode = "custom";
+    this.syncSandbox();
+    this.renderMenu();
+    this.render();
+    this.toast("Пресет «" + this.savedPresets[idx].name + "» загружен");
+  };
+
+  UI.prototype.onDeletePreset = function (idx) {
+    if (!this.savedPresets[idx]) return;
+    this.savedPresets.splice(idx, 1);
+    this.persistPresets();
+    this.renderSavedPresets();
+  };
+
+  UI.prototype.setMenuMode = function (mode) {
+    this.menuMode = mode;
+    if (mode === "custom") this.buildSandbox();
+    this.renderMenu();
+    this.render();
+  };
+
+  UI.prototype.setMenuPlayers = function (count) {
+    this.menuPlayers = count;
+    var slots = [];
+    for (var i = 0; i < count; i++) slots.push(i === 0 ? "human" : "ai");
+    this.menuSlots = slots;
+    this.renderMenu();
+  };
+
+  UI.prototype.renderMenu = function () {
+    var segMode = this.dom.menuOv.querySelectorAll("#segMode .seg-btn");
+    for (var i = 0; i < segMode.length; i++) {
+      segMode[i].className = "seg-btn" + (segMode[i].getAttribute("data-mode") === this.menuMode ? " active" : "");
+    }
+    var segP = this.dom.menuOv.querySelectorAll("#segPlayers .seg-btn");
+    for (var i = 0; i < segP.length; i++) {
+      segP[i].className = "seg-btn" + (segP[i].getAttribute("data-players") === String(this.menuPlayers) ? " active" : "");
+    }
+    if (this.menuMode === "custom") {
+      if (!this.builtSandbox) this.buildSandbox();
+      this.syncSandbox();
+      this.dom.sandboxBox.classList.remove("hidden");
+    } else {
+      this.dom.sandboxBox.classList.add("hidden");
+    }
+    var names = FACTION_NAMES[String(this.menuPlayers)];
+    var html = "";
+    for (var i = 0; i < this.menuPlayers; i++) {
+      var cur = this.menuSlots[i] || "ai";
+      html += '<div class="slot-row"><span class="slot-name"><span class="turn-dot t' + i + '"></span>' + names[i] + '</span>' +
+        '<select class="sel" data-slot="' + i + '">' +
+        '<option value="human"' + (cur === "human" ? " selected" : "") + '>Человек (Hotseat)</option>' +
+        '<option value="ai"' + (cur === "ai" ? " selected" : "") + '>ИИ (Бот)</option>' +
+        "</select></div>";
+    }
+    this.dom.slotBox.innerHTML = html;
+    var self = this;
+    var applySlots = function () {
+      var slots = [];
+      var sels = self.dom.slotBox.querySelectorAll("select[data-slot]");
+      for (var i = 0; i < sels.length; i++) slots.push(sels[i].value);
+      self.menuSlots = slots;
+    };
+    this._applySlots = applySlots;
+    this.dom.menuRules.innerHTML = this.rulesHtml(this.menuMode);
+  };
+
+  UI.prototype.onStart = function () {
+    if (this._applySlots) this._applySlots();
+    var difficulty = this.dom.diffSel.value || "medium";
+    this.startGame(this.menuMode, this.menuPlayers, this.menuSlots, difficulty);
+  };
+
+  UI.prototype.startGame = function (mode, players, slots, difficulty) {
+    var cfg;
+    if (mode === "custom") cfg = cloneObj(this.draft);
+    else cfg = presetConfig(mode);
+    cfg.preset = mode;
+    cfg.playerCount = players;
+    cfg.slots = slots.slice();
+    cfg.difficulty = difficulty;
+    this.lastGame = { mode: mode, players: players, slots: slots.slice(), difficulty: difficulty };
+    window.gameConfig = cfg;
+    this.applyTheme(cfg.uiTheme);
+    this.applyHealth(cfg.healthDisplay);
+    this.selectedUnit = null;
+    this.recruitType = null;
+    this.dom.menuOv.classList.add("hidden");
+    this.dom.victoryOv.classList.add("hidden");
+    var playerObjs = [];
+    for (var i = 0; i < players; i++) {
+      playerObjs.push({
+        name: FACTION_NAMES[String(players)][i],
+        kind: slots[i],
+        corner: CORNER_ORDER[String(players)][i]
+      });
+    }
+    this.e.newGame({
+      cfg: cfg,
+      difficulty: difficulty,
+      players: playerObjs
+    });
+  };
+
+  UI.prototype.onMenu = function () {
+    this.selectedUnit = null;
+    this.recruitType = null;
+    this.e.phase = Phase.MENU;
+    this.dom.menuOv.classList.remove("hidden");
+    this.dom.victoryOv.classList.add("hidden");
+    this.renderMenu();
+    this.render();
+  };
+
+  UI.prototype.onEndTurn = function () {
+    if (this.e.phase !== Phase.PLAYING) return;
+    if (this.e.activePlayer().isAI()) return;
+    this.selectedUnit = null;
+    this.recruitType = null;
+    this.e.endTurn();
+  };
+
+  UI.prototype.onRestore = function () {
+    var e = this.e;
+    if (e.phase !== Phase.PLAYING || e.activePlayer().isAI()) return;
+    if (!this.selectedUnit) return;
+    var res = e.tryRestore(this.selectedUnit);
+    if (!res.ok) this.toast(res.msg);
+  };
+
+  UI.prototype.onRecruitClick = function (typeId) {
+    var e = this.e;
+    if (e.phase !== Phase.PLAYING || e.activePlayer().isAI()) return;
+    var type = UNIT_TYPES[typeId];
+    var cost = e.costRecruit(type);
+    if (e.activePlayer().coins < cost) {
+      this.toast("Для призыва нужно " + cost + " монет");
+      return;
+    }
+    if (this.recruitType === typeId) this.recruitType = null;
+    else this.recruitType = typeId;
+    if (this.recruitType) this.selectedUnit = null;
+    this.render();
+  };
+
+  UI.prototype.onDiploClick = function (ev) {
+    var e = this.e;
+    if (e.phase !== Phase.PLAYING || e.activePlayer().isAI()) return;
+    var t = ev.target;
+    while (t && t !== this.dom.diploBody) {
+      if (t.getAttribute && t.getAttribute("data-diplo")) {
+        var act = t.getAttribute("data-diplo");
+        var ti = parseInt(t.getAttribute("data-t"), 10);
+        var p = e.activePlayer();
+        var r;
+        if (act === "pact") r = e.requestPact(p, e.players[ti]);
+        else if (act === "ally") r = e.requestAlliance(p, e.players[ti]);
+        else if (act === "break") r = e.breakAlliance(p);
+        else { var amt = act === "lend5" ? 5 : 3; r = e.lendLease(p, e.players[ti], amt); }
+        if (!r.ok) this.toast(r.msg);
+        return;
+      }
+      t = t.parentNode;
+    }
+  };
+
+  UI.prototype.onCell = function (r, c) {
+    var e = this.e;
+    if (e.phase !== Phase.PLAYING || e.activePlayer().isAI()) return;
+    var p = e.activePlayer();
+    var t = e.board.unitAt(r, c);
+    if (e.cfg.fogOfWar) {
+      var vis = e.visibleSet(p);
+      if (!vis[r + ":" + c]) return;
+    }
+    if (this.recruitType) {
+      if (t) { this.toast("Клетка занята — выберите свободную"); return; }
+      var res = e.tryRecruit(p, this.recruitType, { row: r, col: c });
+      if (res.ok) { this.recruitType = null; this.render(); }
+      else this.toast(res.msg);
+      return;
+    }
+    if (t && t.playerId === p.index) {
+      if (this.selectedUnit && this.selectedUnit.id === t.id) this.selectedUnit = null;
+      else this.selectedUnit = t;
+      if (!e.canMove(t) && !e.canAttack(t)) this.toast("Юнит уже потратил действие в этом ходу");
+      this.render();
+      return;
+    }
+    if (t && t.playerId !== p.index) {
+      if (this.selectedUnit) {
+        var res = e.tryAttack(this.selectedUnit, { row: r, col: c });
+        if (res.ok) this.selectedUnit = null;
+        else this.toast(res.msg);
+        this.render();
+      }
+      return;
+    }
+    if (this.selectedUnit) {
+      var res = e.tryMove(this.selectedUnit, { row: r, col: c });
+      if (!res.ok) this.toast(res.msg);
+      this.render();
+    }
+  };
+
+  UI.prototype.computeHighlights = function () {
+    var e = this.e;
+    var out = [];
+    if (this.recruitType && e.phase === Phase.PLAYING && !e.activePlayer().isAI()) {
+      var cells = e.recruitCells(e.activePlayer());
+      for (var i = 0; i < cells.length; i++) out.push({ row: cells[i].row, col: cells[i].col, kind: "recruit" });
+      return out;
+    }
+    if (this.selectedUnit && e.phase === Phase.PLAYING) {
+      var vis = e.cfg.fogOfWar ? e.visibleSet(e.activePlayer()) : null;
+      var m = e.movesOf(this.selectedUnit);
+      for (var i = 0; i < m.length; i++) out.push({ row: m[i].row, col: m[i].col, kind: "move" });
+      var a = e.attacksOf(this.selectedUnit);
+      for (var i = 0; i < a.length; i++) {
+        if (!vis || vis[a[i].row + ":" + a[i].col]) out.push({ row: a[i].row, col: a[i].col, kind: "attack" });
+      }
+    }
+    return out;
+  };
+
+  UI.prototype.zoneOf = function (r, c) {
+    var n = this.e.players.length;
+    if (n === 2) {
+      if (r >= CONFIG.SIZE - 3) return 0;
+      if (r <= 2) return 1;
+      return -1;
+    }
+    if (r <= 2 && c <= 2) return 0;
+    if (r <= 2 && c >= 5) return 1;
+    if (r >= 5 && c >= 5) return 2;
+    if (r >= 5 && c <= 2) return 3;
+    return -1;
+  };
+
+  UI.prototype.isFactoryCell = function (r, c) {
+    for (var i = 0; i < CONFIG.FACTORIES.length; i++) {
+      if (CONFIG.FACTORIES[i][0] === r && CONFIG.FACTORIES[i][1] === c) return true;
+    }
+    return false;
+  };
+
+  UI.prototype.render = function () {
+    var e = this.e;
+    var p = e.activePlayer();
+    var sig = e.turnNumber + ":" + e.activeIdx;
+    if (sig !== this.lastSig) {
+      this.lastSig = sig;
+      this.selectedUnit = null;
+      this.recruitType = null;
+    }
+    if (this.selectedUnit && (!p || e.phase === Phase.AI_TURN || this.selectedUnit.playerId !== p.index || !p.units.some(function (u) { return u.id === this.selectedUnit.id; }.bind(this)))) {
+      this.selectedUnit = null;
+    }
+    if (this.recruitType && (e.phase !== Phase.PLAYING || e.activePlayer().isAI())) this.recruitType = null;
+    this.renderBoard();
+    this.renderHud();
+    this.renderInfo();
+    this.renderDiplo();
+    this.renderLog();
+    this.renderHelp();
+    this.renderOverlays();
+  };
+
+  UI.prototype.renderBoard = function () {
+    var e = this.e;
+    var p = e.activePlayer();
+    var fogOn = e.cfg.fogOfWar && (e.phase === Phase.PLAYING || e.phase === Phase.AI_TURN);
+    var vis = fogOn && p ? e.visibleSet(p) : null;
+    var hl = this.computeHighlights();
+    var hlMap = {};
+    for (var i = 0; i < hl.length; i++) hlMap[hl[i].row + ":" + hl[i].col] = hl[i].kind;
+    for (var r = 0; r < CONFIG.SIZE; r++) {
+      for (var c = 0; c < CONFIG.SIZE; c++) {
+        var el = this.cellEls[r][c];
+        var dark = e.board.isDark(r, c);
+        var cls = "cell " + (dark ? "dark" : "light");
+        if (dark) {
+          var z = this.zoneOf(r, c);
+          if (z >= 0) cls += " zone-" + z;
+          if (e.cfg.factoriesEnabled && this.isFactoryCell(r, c)) cls += " factory";
+          var tr = e.board.terrainAt(r, c);
+          if (tr === Terrain.MOUNTAIN) cls += " terrain-1";
+          else if (tr === Terrain.RIVER) cls += " terrain-2";
+          else if (tr === Terrain.COVER) cls += " terrain-3";
+        }
+        var fogged = vis && !vis[r + ":" + c];
+        if (fogged) cls += " fog";
+        el.className = cls;
+        el.innerHTML = "";
+        var u = e.board.unitAt(r, c);
+        if (u && !(fogged && u.playerId !== p.index)) {
+          var ud = document.createElement("div");
+          ud.className = "unit team-" + u.playerId + " " + u.type.id + (u.isBroken() ? " broken" : "");
+          if (this.selectedUnit && this.selectedUnit.id === u.id) ud.className += " sel";
+          ud.title = u.type.title + " · " + (u.isBroken() ? "СЛОМАННАЯ" : "НОРМАЛЬНАЯ") + " · " + coordName(r, c);
+          el.appendChild(ud);
+        }
+        var kind = hlMap[r + ":" + c];
+        if (kind && !fogged) {
+          var md = document.createElement("div");
+          md.className = "marker " + kind;
+          el.appendChild(md);
+          el.classList.add("avail");
+        }
+      }
+    }
+  };
+
+  UI.prototype.renderHud = function () {
+    var e = this.e;
+    var p = e.activePlayer();
+    var dot = this.dom.turnDot;
+    dot.className = "turn-dot t" + (p ? p.index : 0);
+    this.dom.turnName.textContent = p ? p.name : "—";
+    if (p && p.allianceId !== null) {
+      this.dom.turnAlliance.textContent = "СОЮЗ №" + p.allianceId;
+      this.dom.turnAlliance.classList.remove("hidden");
+    } else {
+      this.dom.turnAlliance.classList.add("hidden");
+    }
+    var income = p ? this.e.incomeOf(p) : 0;
+    var coins = p ? p.coins : 0;
+    var coinEls = this.dom.coinsRow.children;
+    for (var i = 0; i < coinEls.length; i++) {
+      coinEls[i].className = "coin" + (i < Math.min(coins, income) ? " on" : "");
+      coinEls[i].style.display = i < income ? "" : "none";
+    }
+    this.dom.coinsText.textContent = coins + " / " + income;
+    var sub = this.dom.turnSub;
+    if (e.phase === Phase.MENU) {
+      sub.className = "turn-sub";
+      sub.textContent = "Ожидание командира";
+    } else if (e.phase === Phase.AI_TURN) {
+      sub.className = "turn-sub think";
+      sub.textContent = "ИИ просчитывает ход…";
+    } else if (e.phase === Phase.OVER) {
+      sub.className = "turn-sub";
+      sub.textContent = "Битва окончена";
+    } else {
+      sub.className = "turn-sub";
+      sub.textContent = "Ход " + e.turnNumber + " · " + (p.isAI() ? "ход ИИ" : "ваш ход");
+    }
+    var humanTurn = e.phase === Phase.PLAYING && p && !p.isAI();
+    this.dom.btnEnd.disabled = !humanTurn;
+    var wrap = this.dom.recruitWrap;
+    wrap.innerHTML = "";
+    var typeIds = [];
+    if (e.cfg.allowInfantry) typeIds.push("infantry");
+    if (e.cfg.allowTanks) typeIds.push("tank");
+    if (e.cfg.allowArtillery) typeIds.push("artillery");
+    for (var i = 0; i < typeIds.length; i++) {
+      (function (tid) {
+        var type = UNIT_TYPES[tid];
+        var cost = e.costRecruit(type);
+        var b = document.createElement("button");
+        b.className = "btn mini" + (this.recruitType === tid ? " active" : "");
+        b.setAttribute("data-recruit", tid);
+        var can = humanTurn && p.coins >= cost && e.recruitCells(p).length > 0;
+        b.disabled = !can && this.recruitType !== tid;
+        b.textContent = type.title + " · " + cost;
+        wrap.appendChild(b);
+      }).call(this, typeIds[i]);
+    }
+  };
+
+  UI.prototype.renderInfo = function () {
+    var e = this.e;
+    var body = this.dom.infoBody;
+    var u = this.selectedUnit;
+    if (u && e.phase !== Phase.MENU) {
+      var html = "";
+      html += '<div class="info-line"><span class="k">Подразделение:</span> ' + u.type.title + '</div>';
+      html += '<div class="info-line"><span class="k">Состояние:</span> <span class="info-state ' + (u.isBroken() ? "broken" : "normal") + '">' + (u.isBroken() ? "СЛОМАННАЯ" : "НОРМАЛЬНАЯ") + "</span></div>";
+      html += '<div class="info-line"><span class="k">Позиция:</span> ' + coordName(u.row, u.col) + "</div>";
+      if (u.isBroken()) {
+        html += '<div class="info-line"><span class="k">Тыл:</span> ремонт в 3 нижних рядах — ' + CONFIG.RESTORE_COST + ' монета;</div>';
+        html += '<div class="info-line">бесплатное восстановление — на противоположном крае.</div>';
+      }
+      if (u.playerId === e.activePlayer().index) {
+        var acts = "движение (" + e.costMove(u, 1, 0) + (u.type.moves > 1 ? "-" + e.costMove(u, 2, 0) : "") + ") · атака (" + e.costAttack(u) + ")";
+        if (u.type.ranged()) acts += " · дальность " + u.type.attackMin + "–" + u.type.attackMax;
+        if (u.type.destroysInfantry) acts += " · прорыв: уничтожает пехоту";
+        html += '<div class="info-line"><span class="k">Действия:</span> ' + acts + ".</div>";
+        html += '<div class="info-line"><span class="k">Зелёные клетки</span> — перемещение, <span class="k">красные</span> — атака/огонь.</div>';
+        if (e.canRestore(u)) html += '<button class="btn restore-btn" data-action="restore">Восстановить · ' + CONFIG.RESTORE_COST + " монета</button>";
+      } else {
+        html += '<div class="info-line"><span class="k">Статус:</span> бездействует до конца хода.</div>';
+      }
+      body.innerHTML = html;
+    } else {
+      var tip =
+        '<div class="info-tip"><b>Выберите свою часть</b> — подсветятся ходы (зелёное) и цели атаки (красное).</div>' +
+        '<div class="info-tip">Призыв: кнопки в верхней панели; новая часть появляется рядом с союзником.</div>';
+      if (e.cfg.brokenState) {
+        tip += '<div class="info-tip">Ремонт: сломанный юнит в <b>3 нижних рядах</b> чинится за 1 монету; на противоположном крае — бесплатно.</div>';
+      } else {
+        tip += '<div class="info-tip">Сломанное состояние <b>отключено</b> — каждое попадание уничтожает юнит.</div>';
+      }
+      tip += '<div class="info-tip">Каждый ход — <b>' + e.cfg.incomePerTurn + ' монет</b>' +
+        (e.cfg.factoriesEnabled ? "; заводы в центре дают +1 за контролируемую точку" : "") + "." +
+        (e.cfg.carryOverCoins ? " Неиспользованные монеты сохраняются." : " Неиспользованные сгорают.") + "</div>";
+      var lim = e.cfg.unitMoveLimit === "strict" ? "1 действие" : (e.cfg.unitMoveLimit === "tactical" ? "без лимита (по монетам)" : "движение + атака");
+      tip += '<div class="info-tip">Лимит действий: <b>' + lim + "</b>.</div>";
+      body.innerHTML = tip;
+    }
+  };
+
+  UI.prototype.renderDiplo = function () {
+    var e = this.e;
+    var panel = this.dom.diploPanel;
+    if (!e.cfg.allowDiplomacy || e.phase === Phase.MENU) {
+      panel.classList.add("hidden");
+      return;
+    }
+    panel.classList.remove("hidden");
+    var body = this.dom.diploBody;
+    var p = e.activePlayer();
+    var html = "";
+    var meActive = e.phase === Phase.PLAYING && !p.isAI();
+    for (var i = 0; i < e.players.length; i++) {
+      var x = e.players[i];
+      html += '<div class="diplo-row">';
+      html += '<span class="turn-dot t' + x.index + '"></span>';
+      html += '<span class="diplo-name">' + x.name + "</span>";
+      if (x.index === p.index) html += '<span class="tag self">ВЫ</span>';
+      if (!x.alive) html += '<span class="tag out">ВЫБЫЛ</span>';
+      if (x.allianceId !== null) html += '<span class="tag alliance">СОЮЗ №' + x.allianceId + "</span>";
+      var pt = 0;
+      if (x.index !== p.index) {
+        pt = e.pactTurns(p.index, x.index);
+        if (pt > 0) html += '<span class="tag pact">ПАКТ · ' + pt + "</span>";
+      }
+      if (x.index !== p.index && x.alive && meActive) {
+        html += '<span class="diplo-actions">';
+        if (x.allianceId !== null && p.allianceId === x.allianceId) {
+          html += '<button class="btn mini" data-diplo="break" data-t="' + x.index + '">Разорвать · ' + CONFIG.BETRAYAL_COST + "</button>";
+        } else {
+          if (pt === 0) html += '<button class="btn mini" data-diplo="pact" data-t="' + x.index + '"' + (p.coins < CONFIG.PACT_COST ? " disabled" : "") + ">Пакт · " + CONFIG.PACT_COST + "</button>";
+          html += '<button class="btn mini" data-diplo="ally" data-t="' + x.index + '"' + (p.coins < CONFIG.ALLIANCE_COST ? " disabled" : "") + ">Союз · " + CONFIG.ALLIANCE_COST + "</button>";
+          html += '<button class="btn mini" data-diplo="lend3" data-t="' + x.index + '"' + (p.coins < 3 ? " disabled" : "") + ">Ленд 3</button>";
+          html += '<button class="btn mini" data-diplo="lend5" data-t="' + x.index + '"' + (p.coins < 5 ? " disabled" : "") + ">Ленд 5</button>";
+        }
+        html += "</span>";
+      }
+      html += "</div>";
+    }
+    body.innerHTML = html;
+  };
+
+  UI.prototype.renderLog = function () {
+    var e = this.e;
+    var body = this.dom.logBody;
+    var html = "";
+    for (var i = 0; i < e.history.length; i++) {
+      var h = e.history[i];
+      var cls = "log-line";
+      if (h.owner === -1) cls += " sys";
+      else cls += " own-" + h.owner;
+      html += '<div class="' + cls + '">' + h.text + "</div>";
+    }
+    body.innerHTML = html;
+    body.scrollTop = body.scrollHeight;
+  };
+
+  UI.prototype.rulesHtmlFor = function (cfg) {
+    var h = "<li>Ход/атака — по диагонали, только тёмные клетки. Обычный удар: жертва ломается и держит позицию; по сломанной — уничтожение.</li>";
+    if (cfg.unitMoveLimit === "strict") h += "<li><b>Лимит действий:</b> строгий — 1 действие на юнит за ход.</li>";
+    else if (cfg.unitMoveLimit === "tactical") h += "<li><b>Лимит действий:</b> тактический — без лимита, пока хватает монет.</li>";
+    else h += "<li><b>Лимит действий:</b> стандартный — движение, затем атака.</li>";
+    h += "<li><b>Экономика:</b> " + cfg.incomePerTurn + " монет/ход" +
+      (cfg.factoriesEnabled ? "; заводы в центре: +1 к доходу за каждую контролируемую точку" : "") +
+      (cfg.carryOverCoins ? "; неиспользованные монеты сохраняются" : "; неиспользованные монеты сгорают") + ".</li>";
+    if (cfg.brokenState) {
+      h += "<li>Сломанный юнит чинится в 3 задних рядах за 1 монету; на противоположном крае — бесплатно.</li>";
+    } else {
+      h += "<li><b>Сломанное состояние отключено:</b> каждое попадание уничтожает юнит сразу.</li>";
+    }
+    var us = [];
+    if (cfg.allowInfantry) us.push("Пехота " + unitCost("infantry", cfg.costRecruitMult));
+    if (cfg.allowTanks) us.push("Танк " + unitCost("tank", cfg.costRecruitMult) + " (уничтожает пехоту, шаг до 2)");
+    if (cfg.allowArtillery) us.push("Артиллерия " + unitCost("artillery", cfg.costRecruitMult) + " (огонь на 2–3)");
+    if (us.length) h += "<li><b>Войска:</b> " + us.join(" · ") + ".</li>";
+    else h += "<li><b>Войска:</b> призыв отключён — в бою только стартовые части.</li>";
+    if (cfg.allowDiplomacy) h += "<li><b>Дипломатия:</b> Пакт 2 (3 хода); Союз 4 — совместная победа; Разрыв союза 6; Ленд-лиз 3/5 монет.</li>";
+    if (cfg.terrainEnabled) h += "<li><b>Рельеф:</b> горы непроходимы; реки удорожают движение; укрытия блокируют навесной огонь.</li>";
+    if (cfg.fogOfWar) h += "<li><b>Туман войны:</b> видна только территория вокруг ваших юнитов.</li>";
+    h += "<li>Победа: уничтожить всех соперников" + (cfg.allowDiplomacy ? " или совместная победа альянса" : "") + ".</li>";
+    return h;
+  };
+
+  UI.prototype.rulesHtml = function (modeId) {
+    var cfg = modeId === "custom" ? this.draft : presetConfig(modeId);
+    return this.rulesHtmlFor(cfg);
+  };
+
+  UI.prototype.renderHelp = function () {
+    this.dom.helpBody.innerHTML = this.rulesHtmlFor(this.e.cfg);
+  };
+
+  UI.prototype.renderOverlays = function () {
+    var e = this.e;
+    if (e.phase === Phase.OVER && e.winner) {
+      this.dom.victoryOv.classList.remove("hidden");
+      var title = this.dom.victoryTitle;
+      if (e.winner.kind === "alliance") {
+        var names = [];
+        for (var i = 0; i < e.winner.members.length; i++) names.push(e.winner.members[i].name);
+        title.textContent = "СОВМЕСТНАЯ ПОБЕДА";
+        title.className = "victory-title gold";
+        this.dom.victorySub.textContent = "Альянс: " + names.join(", ") + ". " + e.endReason;
+      } else {
+        var w = e.winner.player;
+        var twoPvsAI = e.players.length === 2 && (e.players[0].isAI() || e.players[1].isAI());
+        if (twoPvsAI && w.index === 0) {
+          title.textContent = "ПОБЕДА";
+          title.className = "victory-title t0";
+        } else if (twoPvsAI) {
+          title.textContent = "ПОРАЖЕНИЕ";
+          title.className = "victory-title t1";
+        } else {
+          title.textContent = "ПОБЕДА: " + w.name;
+          title.className = "victory-title t" + w.index;
+        }
+        this.dom.victorySub.textContent = e.endReason;
+      }
+    } else if (e.phase === Phase.OVER) {
+      this.dom.victoryOv.classList.remove("hidden");
+      this.dom.victoryTitle.textContent = "НИЧЬЯ";
+      this.dom.victoryTitle.className = "victory-title gold";
+      this.dom.victorySub.textContent = e.endReason || "Все стороны выбыли";
+    } else {
+      this.dom.victoryOv.classList.add("hidden");
+    }
+    var pn = { classic: "Классика", expanded: "Расширенный", custom: "Кастомный" };
+    this.dom.modeBadge.textContent = "Режим: " + (pn[e.cfg.preset] || "Кастомный");
+  };
+
+  UI.prototype.toast = function (msg) {
+    var t = this.dom.toast;
+    t.textContent = msg;
+    t.classList.add("show");
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    var self = this;
+    this.toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  };
+
+  function boot() {
+    var engine = new Engine();
+    var dom = {
+      board: document.getElementById("board"),
+      turnDot: document.getElementById("turnDot"),
+      turnName: document.getElementById("turnName"),
+      turnSub: document.getElementById("turnSub"),
+      turnAlliance: document.getElementById("turnAlliance"),
+      coinsRow: document.getElementById("coinsRow"),
+      coinsText: document.getElementById("coinsText"),
+      recruitWrap: document.getElementById("recruitWrap"),
+      btnEnd: document.getElementById("btnEnd"),
+      btnMenu: document.getElementById("btnMenu"),
+      infoBody: document.getElementById("infoBody"),
+      logBody: document.getElementById("logBody"),
+      helpBody: document.getElementById("helpBody"),
+      diploPanel: document.getElementById("diploPanel"),
+      diploBody: document.getElementById("diploBody"),
+      modeBadge: document.getElementById("modeBadge"),
+      menuOv: document.getElementById("menuOv"),
+      menuRules: document.getElementById("menuRules"),
+      slotBox: document.getElementById("slotBox"),
+      diffSel: document.getElementById("diffSel"),
+      sandboxBox: document.getElementById("sandboxBox"),
+      btnStart: document.getElementById("btnStart"),
+      victoryOv: document.getElementById("victoryOv"),
+      victoryTitle: document.getElementById("victoryTitle"),
+      victorySub: document.getElementById("victorySub"),
+      btnReplay: document.getElementById("btnReplay"),
+      btnToMenu: document.getElementById("btnToMenu"),
+      toast: document.getElementById("toast")
+    };
+    var ui = new UI(engine, dom);
+    ui.renderMenu();
+    ui.render();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
